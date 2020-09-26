@@ -1,0 +1,19 @@
+{
+  "name": "boydog-noot",
+  "version": "0.0.0",
+  "description": "boydog-noot",
+  "main": "server.js",
+  "scripts": {
+    "start": "node ./server.js",
+    "dev": "nodemon ./server.js"
+  },
+  "author": "BoyDog (www.boy.dog)",
+  "license": "MIT",
+  "dependencies": {
+    "body-parser": "^1.19.0",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.4"
+  }
+}
