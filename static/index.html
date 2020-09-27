@@ -5,10 +5,20 @@
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="author" content="boydog" />
     <title>boydog-noot</title>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/reconnecting-websocket/1.0.0/reconnecting-websocket.min.js"
+      integrity="sha512-B4skI5FiLurS86aioJx9VfozI1wjqrn6aTdJH+YQUmCZum/ZibPBTX55k5d9XM6EsKePDInkLVrN7vPmJxc1qA=="
+      crossorigin="anonymous"
+    ></script>
   </head>
 
   <body>
-    <div>abc</div>
-    <script></script>
+    <div>
+      <input bd-value="word" />
+    </div>
+    <script>
+      const socket = new ReconnectingWebSocket("ws://localhost:3080")
+      console.log("socket", socket)
+    </script>
   </body>
 </html>
