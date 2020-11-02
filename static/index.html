@@ -19,13 +19,29 @@
 
   <body>
     <div>
-      <input bd-value="'123' + word" bd-model="word" />
+      <input bd-model="word" />
+      <input bd-model="thing" />
     </div>
     <script>
       const socket = new ReconnectingWebSocket("ws://localhost:3080")
-      console.log("socket", socket)
 
       let scope = {}
+      let domScope = {}
+
+      // Create scope vars
+      $("[bd-model]").each((i, el) => {
+        const path = el.getAttribute("bd-model")
+        scope[path] = ""
+
+        if (domScope[path] !== []) domScope[path] = []
+        domScope[path].push((newVal) => {
+          el["value"] = newVal
+        })
+
+        $(el).on("input", (ev) => {
+          socket.send(JSON.stringify({ p: path, v: ev.target.value }))
+        })
+      })
 
       socket.onopen = () => {
         console.log("onopen")
@@ -37,13 +53,12 @@
         msg = JSON.parse(msg.data)
         scope[msg.p] = msg.v
         console.log("scope", scope)
-      }
 
-      $("[bd-model='word']").on("input", (ev) => {
-        const el = ev.target
-        console.log("about to send", el.value)
-        socket.send(JSON.stringify({ p: "word", v: ev.target.value }))
-      })
+        if (domScope[msg.p] === undefined) return
+        domScope[msg.p].forEach((o) => {
+          o(scope[msg.p])
+        })
+      }
     </script>
   </body>
 </html>

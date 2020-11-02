@@ -18,7 +18,7 @@ const server = http.createServer(app)
 
 let scope = {
   word: "starting word",
-  /*title: "initial title",
+  title: "initial title",
   subject: "random subject",
   thing: "red bold",
   bool: false,
@@ -26,7 +26,14 @@ let scope = {
   data: {
     name: "John Doe",
     address: "74 Henry Road",
-  },*/
+  },
+}
+
+const sendAllScope = (socket) => {
+  let e = Object.entries(scope)
+  e.forEach((f) => {
+    socket.send(JSON.stringify({ p: f[0], v: f[1] }))
+  })
 }
 
 // Set WS server
@@ -34,10 +41,15 @@ const wsServer = new ws.Server({ noServer: true })
 wsServer.on("connection", (socket) => {
   console.log("connection")
 
-  socket.on("message", (message) => {
-    console.log("RX message", message)
+  sendAllScope(socket)
+
+  socket.on("message", (msg) => {
+    msg = JSON.parse(msg)
+
+    scope[msg.p] = msg.v // Update scope
+
     wsServer.clients.forEach((client) => {
-      if (client.readyState === ws.OPEN) client.send(message)
+      if (client.readyState === ws.OPEN) client.send(JSON.stringify(msg))
     })
   })
 })
