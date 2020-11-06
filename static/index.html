@@ -25,7 +25,6 @@
       integrity="sha512-Q57dc6D3mm13he5p7wUxJsTSRsETCo0Z/SU9u9YfKRiuWGsx7U02+tCpgaUUi4RJ8rQB2DofcWqXbvgBLCUcSQ=="
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdn.jsdelivr.net/npm/lodash.topath@4.5.2/index.js"></script>
   </head>
 
   <body>
@@ -33,7 +32,9 @@
       <input bd-model="word" />
       <input bd-model="thing" />
       <div bd-class="'my other classes' + word">class</div>
-      <div bd-html="'sample ' + word + ' & ' + thing">href</div>
+      bd-content: <div bd-content="'sample ' + word + ';;;'">href</div></br/>
+      bd-html: <div bd-html="'sample ' + word + ';;;'">href</div></br/>
+      bd-dangerous-html: <div bd-dangerous-html="'sample ' + word + ';;;'">href</div></br/>
     </div>
     <script>
       const socket = new ReconnectingWebSocket("ws://localhost:3080")
@@ -41,7 +42,13 @@
       const attrCalculables = {
         "bd-id": "id",
         "bd-class": "className",
-        "bd-html": "innerHTML",
+        "bd-content": "textContent",
+        "bd-html": (val, el) => {
+          let temp = document.createElement("div")
+          temp.textContent = val
+          el.innerHTML = temp.innerHTML
+        },
+        "bd-dangerous-html": "innerHTML",
         "bd-src": "src",
       }
 
@@ -66,9 +73,20 @@
 
       const processCalculable = (path, attr, attrVal, el) => {
         if (!Array.isArray(calcScope[path])) calcScope[path] = []
-        calcScope[path].push(() => {
-          el[attrCalculables[attr]] = new Function("sandbox", `with (sandbox) {const r = ${attrVal}; return r;}`)(scope)
-        })
+
+        const sandboxFn = new Function("sandbox", `with (sandbox) {const r = ${attrVal}; return r;}`)
+
+        if (typeof attrCalculables[attr] === "function") {
+          calcScope[path].push(() => {
+            attrCalculables[attr](sandboxFn(scope), el)
+            return
+          })
+        } else {
+          calcScope[path].push(() => {
+            el[attrCalculables[attr]] = sandboxFn(scope)
+            return
+          })
+        }
       }
 
       // Create calculable variables
