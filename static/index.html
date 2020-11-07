@@ -31,20 +31,22 @@
 
   <body>
     <div>
-      <input bd-model="thing" />
+      thing: <input bd-model="thing" />
+      <br/>
       <div bd-html="thing"></div>
       <br/>
       <br/>
       <br/>
       <input bd-model="word" />
-      <div bd-class="'my other classes' + word">class</div>
-      bd-content: <div bd-content="'sample ' + word + ';;;'">href</div></br/>
-      bd-html: <div bd-html="'sample ' + word + ';;;'">href</div></br/>
-      bd-dangerous-html: <div bd-dangerous-html="'sample ' + word + ';;;'">href</div></br/>
+      <br/>
+      [bd-content]: <div bd-content="'sample ' + word + ';;;'">href</div></br/>
+      [bd-html]: <div bd-html="'sample ' + word + ';;;'">href</div></br/>
+      [bd-dangerous-html]: <div bd-dangerous-html="'sample ' + word + ';;;'">href</div></br/>
       <br/>
       <br/>
       <br/>
-      <input bd-model="data.name" />
+      data.name: <input bd-model="data.name" />
+      <br/>
       <div bd-html="data.name"></div>
       <br/>
       <br/>
