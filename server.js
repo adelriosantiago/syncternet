@@ -30,10 +30,20 @@ let scope = {
 }
 
 const sendAllScope = (socket) => {
-  let e = Object.entries(scope)
-  e.forEach((f) => {
-    socket.send(JSON.stringify({ p: f[0], v: f[1] }))
+  const iterate = (root, path = "") => {
+    Object.entries(root).forEach((e) => {
+      const p = `${path}>${e[0]}`
+
+      if (Object.prototype.toString.call(e[1]) === "[object Object]") {
+        iterate(e[1], p)
+      } else if (Object.prototype.toString.call(e[1]) === "[object Array]") {
+        iterate({ ...e[1] }, p)
+      } else {
+        socket.send(JSON.stringify({ p: p.substr(1), v: e[1] }))
+      }
   })
+}
+  iterate(scope)
 }
 
 // Set WS server
