@@ -71,20 +71,21 @@
       }
 
       let scope = {}
-      let domScope = {}
+      let modelScope = {} // For processing input and textareas (flat structure)
       let calcScope = {} // For processing calc changes (flat structure)
 
       // Create model variables
       $("[bd-model]").each((i, el) => {
-        const path = el.getAttribute("bd-model")
-        scope[path] = ""
+        const arrPath = _.toPath(el.getAttribute("bd-model"))
+        _.set(scope, arrPath, "")
 
-        if (domScope[path] !== []) domScope[path] = []
-        domScope[path].push(() => {
-          if (el.value !== scope[path]) {
+        const flatPath = arrPath.join(">")
+        if (modelScope[flatPath] !== []) modelScope[flatPath] = []
+        modelScope[flatPath].push(() => {
+          if (el.value !== scope[flatPath]) {
             const selS = el.selectionStart
             const selE = el.selectionEnd
-            el["value"] = scope[path]
+            el["value"] = _.get(scope, arrPath)
             el.selectionStart = selS
             el.selectionEnd = selE
           }
@@ -93,8 +94,8 @@
 
         $(el).on("input", (ev) => {
           const val = ev.target.value
-          scope[path] = val
-          socket.send(JSON.stringify({ p: path, v: val }))
+          socket.send(JSON.stringify({ p: arrPath.join(">"), v: val }))
+          _.set(scope, arrPath, val)
         })
       })
 
@@ -129,7 +130,7 @@
             },
             MemberExpression(node) {
               const path = astring.generate(node)
-              processCalculable(path, attr, attrVal, el)
+              processCalculable(_.toPath(path).join(">"), attr, attrVal, el)
             },
           })
         })
@@ -144,11 +145,10 @@
       }
       socket.onmessage = (msg) => {
         msg = JSON.parse(msg.data)
-        
-        scope[msg.p] = msg.v
 
-        if (domScope[msg.p] !== undefined) {
-          domScope[msg.p].forEach((f) => f()) // Update bd-models
+        _.set(scope, msg.p.split(">"), msg.v)
+        if (modelScope[msg.p] !== undefined) {
+          modelScope[msg.p].forEach((f) => f()) // Update bd-models
         }
         
         if (calcScope[msg.p] !== undefined) {
