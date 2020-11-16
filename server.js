@@ -5,6 +5,7 @@ const ws = require("ws")
 const _get = require("lodash.get")
 const _set = require("lodash.set")
 const utils = require("./utils.js")
+const onObjectLeafGetSet = require("./onObjectLeafGetSet.js")
 const port = 3091
 
 const app = express()
@@ -26,7 +27,6 @@ const iterateAllScope = (onLeaf) => {
 let scope = {
   thing: "here is a thing",
   word: "starting word",
-  bool: false,
   number: "0",
   data: {
     name: "John Doe",
@@ -34,28 +34,15 @@ let scope = {
   },
 }
 
-let _scope = {} // Flat scope which holds scope's real values
-
-iterateAllScope((p, v) => {
-  const prePath = p.split(">")
-  const leaf = prePath.pop()
-
-  _scope[p] = v // Set initial value in flat scope
-
-  const obj = prePath.length ? _get(scope, prePath) : scope
-  Object.defineProperty(obj, leaf, {
-    set: (v) => {
-      _scope[p] = v
-      setTimeout(() => {
-        wsServer.clients.forEach((client) => {
-          if (client.readyState === ws.OPEN) client.send(JSON.stringify({ p, v })) // ENH: A path cache can be implemented to avoid `split`'after each message
-        })
-      }, 0)
-    },
-    get: () => {
-      return _scope[p]
-    },
-  })
+let _scope = onObjectLeafGetSet(scope, {
+  beforeSet: (p, v) => {
+    setTimeout(() => {
+      wsServer.clients.forEach((client) => {
+        if (client.readyState === ws.OPEN) client.send(JSON.stringify({ p, v })) // ENH: A path cache can be implemented to avoid `split`'after each message
+      })
+    }, 0)
+    return v
+  },
 })
 
 setInterval(() => {
