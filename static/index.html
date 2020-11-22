@@ -25,7 +25,11 @@
       integrity="sha512-Q57dc6D3mm13he5p7wUxJsTSRsETCo0Z/SU9u9YfKRiuWGsx7U02+tCpgaUUi4RJ8rQB2DofcWqXbvgBLCUcSQ=="
       crossorigin="anonymous"
     ></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js" integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww==" crossorigin="anonymous"></script>
+    <script
+      src="https://cdnjs.cloudflare.com/ajax/libs/lodash.js/4.17.20/lodash.min.js"
+      integrity="sha512-90vH1Z83AJY9DmlWa8WkjkV79yfS2n2Oxhsi2dZbIv0nC4E6m5AbH8Nh156kkM7JePmqD6tcZsfad1ueoaovww=="
+      crossorigin="anonymous"
+    ></script>
     <script src="https://cdn.jsdelivr.net/npm/astring@1.4.3/dist/astring.min.js"></script>
   </head>
 
@@ -45,13 +49,37 @@
       <br/>
       <br/>
       <br/>
-      data.name: <input bd-model="data.name" />
-      <br/>
-      <div bd-html="data.name"></div>
-      <br/>
-      <br/>
-      <br/>
-      number: <div bd-content="number"></div>
+      data.name: <input bd-model="data.name" /> data.address: <input bd-model="data.address" />
+      <br />
+      data.name content:
+      <div bd-content="data.name"></div>
+      data.address content:
+      <div bd-content="data.address"></div>
+
+      <br />
+      data content:
+      <div bd-content="data"></div>
+      <br />
+      data content JSON:
+      <div bd-content="JSON.stringify(data)"></div>
+
+      <br />
+      <br />
+      <br />
+      number:
+      <div bd-content="number"></div>
+      <br />
+      <br />
+      <br />
+      list:
+      <div bd-content="list[0]"></div>
+      <br />
+      <br />
+      <br />
+      bd-for:
+      <ul>
+        <li bd-for="items">item</li>
+      </ul>
     </div>
     <script>
       const socket = new ReconnectingWebSocket("ws://localhost:3091")
@@ -63,99 +91,164 @@
         "bd-html": (val, el) => {
           let temp = document.createElement("div")
           temp.textContent = val.replace(/[^\w. ]/gi, (c) => {
-            return '&#' + c.charCodeAt(0) + ';'
+            return "&#" + c.charCodeAt(0) + ";"
           })
           el.innerHTML = temp.innerHTML
         },
         "bd-dangerous-html": "innerHTML",
         "bd-src": "src",
+        "bd-for": (val, el) => {
+          const elType = el.cloneNode()
+          elType.removeAttribute("bd-for")
+          const n = parseInt(val)
+
+          // Process element 0
+          el.innerHTML = val - n
+
+          // Process all other elements
+          for (let i = n - 1; i > 0; i--) {
+            const elToInsert = elType.cloneNode()
+            elToInsert.innerHTML = i
+            el.insertAdjacentElement("afterend", elToInsert)
+          }
+        },
       }
 
       let scope = {}
-      let modelScope = {} // For processing input and textareas (flat structure)
+      let modelScope = {} // For processing inputs and textareas (flat structure)
       let calcScope = {} // For processing calc changes (flat structure)
 
-      // Create model variables
-      $("[bd-model]").each((i, el) => {
-        const arrPath = _.toPath(el.getAttribute("bd-model"))
-        _.set(scope, arrPath, "")
+      const initModels = () => {
+        $("[bd-model]").each((i, el) => {
+          const arrPath = _.toPath(el.getAttribute("bd-model"))
 
-        const flatPath = arrPath.join(">")
-        if (modelScope[flatPath] !== []) modelScope[flatPath] = []
-        modelScope[flatPath].push(() => {
-          const currentVal = _.get(scope, arrPath)
-          if (el.value === currentVal) return // Bailout if there is no need to update
+          _.set(scope, arrPath, "")
 
-          const selS = el.selectionStart
-          const selE = el.selectionEnd
-          el.value = currentVal // Set new value
-          el.selectionStart = selS
-          el.selectionEnd = selE
-          return
-        })
+          const flatPath = arrPath.join(">")
+          if (modelScope[flatPath] !== []) modelScope[flatPath] = []
+          modelScope[flatPath].push(() => {
+            const currentVal = _.get(scope, arrPath)
+            if (el.value === currentVal) return // Bailout if there is no need to update
 
-        $(el).on("input", (ev) => {
-          const val = ev.target.value
-          socket.send(JSON.stringify({ p: flatPath, v: val }))
-          _.set(scope, arrPath, val)
-        })
-      })
-
-      const processCalculable = (path, attr, attrVal, el) => {
-        if (!Array.isArray(calcScope[path])) calcScope[path] = []
-
-        const sandboxFn = new Function("sandbox", `with (sandbox) {const r = ${attrVal}; return r;}`)
-
-        if (typeof attrCalculables[attr] === "function") {
-          calcScope[path].push(() => {
-            attrCalculables[attr](sandboxFn(scope), el)
+            const selS = el.selectionStart
+            const selE = el.selectionEnd
+            el.value = currentVal // Set new value
+            el.selectionStart = selS
+            el.selectionEnd = selE
             return
           })
-        } else {
-          calcScope[path].push(() => {
-            el[attrCalculables[attr]] = sandboxFn(scope)
-            return
+
+          $(el).on("input", (ev) => {
+            const val = ev.target.value
+            socket.send(JSON.stringify({ p: flatPath, v: val }))
+            _.set(scope, arrPath, val)
           })
-        }
+        })
       }
 
-      // Create calculable variables
-      Object.keys(attrCalculables).forEach((attr) => {
-        $(`[${attr}]`).each((i, el) => {
-          const attrVal = el.getAttribute(attr)
-          const pathObj = acorn.parse(attrVal, { ecmaVersion: 8 })
+      const initCalculables = () => {
+        const addCalculable = (path, attr, attrVal, el) => {
+          if (!Array.isArray(calcScope[path])) calcScope[path] = []
 
-          acorn.walk.simple(pathObj, {
-            Identifier(node) {
-              const path = node.name
-              processCalculable(path, attr, attrVal, el)
-            },
-            MemberExpression(node) {
-              const path = astring.generate(node)
-              processCalculable(_.toPath(path).join(">"), attr, attrVal, el)
-            },
+          const sandboxFn = new Function(
+            "sandbox",
+            `with (sandbox) { try { return ${attrVal}; } catch(e) { return ""; } }`
+          )
+
+          const parentsArr = path.split(">")
+          parentsArr.pop()
+
+          if (typeof attrCalculables[attr] === "function") {
+            calcScope[path].push(() => {
+              attrCalculables[attr](sandboxFn(scope), el)
+              return
+            })
+          } else {
+            calcScope[path].push(() => {
+              el[attrCalculables[attr]] = sandboxFn(scope)
+              // Update parents
+              parentsArr.forEach((p) => {
+                if (calcScope[p]) calcScope[p].forEach((f) => f())
+              })
+              return
+            })
+          }
+        }
+
+        Object.keys(attrCalculables).forEach((attr) => {
+          $(`[${attr}]`).each((i, el) => {
+            const attrVal = el.getAttribute(attr)
+            const pathObj = acorn.parse(attrVal, { ecmaVersion: 8 })
+
+            let found = []
+            acorn.walk.simple(pathObj, {
+              Identifier(node) {
+                const path = node.name
+                found.push(path)
+              },
+              MemberExpression(node) {
+                const path = astring.generate(node)
+                found.push(path)
+              },
+            })
+
+            // Remove non-scope values (i.e. JSON.stringify)
+            found = found.map((e) => {
+              if (_.get(scope, e) === undefined) return undefined
+              return e
+            })
+            found = found.filter((e) => e !== undefined)
+
+            // Remove parents
+            for (let i = 0; i < found.length - 1; i++) {
+              if (found[i + 1].match(new RegExp(`^${found[i]}`))) {
+                found[i] = undefined
+                continue
+              }
+            }
+            found = found.filter((e) => e !== undefined)
+
+            // Add calculable
+            found.forEach((p) => addCalculable(_.toPath(p).join(">"), attr, attrVal, el))
           })
         })
-      })
+      }
+
+      initModels()
+      initCalculables()
+
+      const specialActions = {
+        "@refresh": () => {
+          Object.values(calcScope).forEach((a) => {
+            a.forEach((f) => f())
+          })
+        },
+      }
 
       // Socket events
       socket.onopen = () => {
-        console.log("onopen")
+        console.log("WebSocket open")
       }
       socket.onerror = (error) => {
         console.log(`WebSocket error: ${error}`)
       }
       socket.onmessage = (msg) => {
-        msg = JSON.parse(msg.data)
+        msg = msg.data
 
-        _.set(scope, msg.p.split(">"), msg.v)
-        if (modelScope[msg.p] !== undefined) {
-          modelScope[msg.p].forEach((f) => f()) // Update bd-models
-        }
+        // For special actions
+        if (msg[0] === "@") return specialActions[msg]()
+
+        // For normal commands
+        msg = JSON.parse(msg)
         
-        if (calcScope[msg.p] !== undefined) {
-          calcScope[msg.p].forEach((f) => f()) // Update calculables
+        // TODO: Fix "boydog-noot-quicktype-bug" from Mattsz
+        if (msg.t !== "p") {
+          _.set(scope, msg.p.split(">"), msg.v)
+          
+          if (modelScope[msg.p] !== undefined) modelScope[msg.p].forEach((f) => f()) // Update bd-models
         }
+
+        if (calcScope[msg.p] !== undefined) calcScope[msg.p].forEach((f) => f()) // Update calculables
       }
     </script>
   </body>

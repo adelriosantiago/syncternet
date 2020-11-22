@@ -1,7 +1,5 @@
-//TODO: Make NPM module?
-
 const _get = require("lodash.get")
-const utils = require("./utils.js")
+const iterate = require("./iterate.js")
 
 const build = (scope, onFunctions) => {
   if (Object.prototype.toString.call(onFunctions) !== "[object Object]" || Object.keys(onFunctions).length === 0)
@@ -22,7 +20,10 @@ const build = (scope, onFunctions) => {
   )
 
   let _scope = {} // Flat scope which holds scope's real values
-  utils.iterate(scope, "", (p, v) => {
+  iterate.onParent((p, v) => {
+    _scope[p] = JSON.stringify(v)
+  })
+  iterate.onLeaf((p, v) => {
     const prePath = p.split(">")
     const leaf = prePath.pop()
 
@@ -46,6 +47,7 @@ const build = (scope, onFunctions) => {
       },
     })
   })
+  iterate.run(scope)
 
   return _scope
 }

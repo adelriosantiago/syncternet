@@ -4,7 +4,7 @@ const bodyParser = require("body-parser")
 const ws = require("ws")
 const _get = require("lodash.get")
 const _set = require("lodash.set")
-const utils = require("./utils.js")
+const iterate = require("./iterate.js")
 const onObjectLeafGetSet = require("./onObjectLeafGetSet.js")
 const port = 3091
 
@@ -20,14 +20,11 @@ app.get("/exampleGetScope", (req, res) => {
 // Init server
 const server = http.createServer(app)
 
-const iterateAllScope = (onLeaf) => {
-  utils.iterate(scope, "", onLeaf)
-}
-
 let scope = {
   thing: "here is a thing",
   word: "starting word",
   number: "0",
+  list: ["q", "P", "3"],
   data: {
     name: "John Doe",
     address: "Main St. 2240",
@@ -43,6 +40,9 @@ let _scope = onObjectLeafGetSet(scope, {
     }, 0)
     return v
   },
+  afterSet: (p, v) => {
+    console.log("afterSet", p, v)
+  },
 })
 
 setInterval(() => {
@@ -55,9 +55,10 @@ wsServer.on("connection", (socket) => {
   console.log("connection")
 
   // Send the client all values from scope
-  iterateAllScope((p, v) => {
-    socket.send(JSON.stringify({ p, v }))
-  })
+  iterate.onLeaf((p, v) => socket.send(JSON.stringify({ p, v })))
+  iterate.onParent((p, v) => socket.send(JSON.stringify({ p, v, t: "p" })))
+  iterate.run(scope)
+  socket.send("@refresh")
 
   socket.on("message", (msg) => {
     msg = JSON.parse(msg)
