@@ -11,11 +11,6 @@
       crossorigin="anonymous"
     ></script>
     <script
-      src="https://cdnjs.cloudflare.com/ajax/libs/cash/8.1.0/cash.min.js"
-      integrity="sha512-sgDgZX/GgfD7qSeMjPN/oE9EQgXZJW55FIjdexVT60QerG2gAWhR9QDQEGt3O90Dy9jVcwMWsoTMhLgldIiKXw=="
-      crossorigin="anonymous"
-    ></script>
-    <script
       src="https://cdnjs.cloudflare.com/ajax/libs/acorn/6.4.2/acorn.min.js"
       integrity="sha512-5McC9yHdohQSaKZHRkGbyD84OUdkgK8Cv89km3Tb8zA2ns9yyDU3yOPLeYB2X6NzM4qbu7rpjFUftjf5X/z0SQ=="
       crossorigin="anonymous"
@@ -31,18 +26,40 @@
       crossorigin="anonymous"
     ></script>
     <script src="https://cdn.jsdelivr.net/npm/astring@1.4.3/dist/astring.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/tinybind@1.0.0/dist/tinybind.min.js"></script>
+    <script src="./boydog-bind.js"></script>
   </head>
 
   <body>
-    <div>word: <input bd-model="word" /></div>
+    <div>
+      <p>word: <input id="qwe" rv-value="word" /></p>
+      <p>word text: <span id="qwe2" rv-text="word"></span></p>
+      <ul>
+        <li id="qwe3" rv-each-item="items">
+          <p>todo: <input rv-value="item.todo" /></p>
+          <p>todo text: <span rv-text="item.todo"></span></p>
+          <p>amt text: <span rv-text="item.amt"></span></p>
+        </li>
+      </ul>
+      <p>all items: <span rv-text="items"></span></p>
+    </div>
     <script>
       const bdProcess = (() => {
-        let scope = {}
+        let scope = {
+          word: "123",
+          // TODO: Continuar aqui implementando TODO
+          items: [
+            { todo: "get milk", amt: 5 },
+            { todo: "buy meat", amt: 3 },
+            { todo: "exercise", amt: 1 },
+          ],
+        }
 
         const action = {
           "@connection": () => {
-            console.log("action: @connection")
+            console.log("action: @connection", scope)
+            tinybind.bind(document.getElementById("qwe"), scope)
+            tinybind.bind(document.getElementById("qwe2"), scope)
+            tinybind.bind(document.getElementById("qwe3"), scope)
           },
         }
 
