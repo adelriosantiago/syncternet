@@ -1,12 +1,18 @@
 let scope = {
-  word: "sample word",
+  word: "123",
+  items: [
+    { todo: "get milk", amt: 5 },
+    { todo: "buy meat", amt: 3 },
+    { todo: "exercise", amt: 1 },
+  ],
 }
 
 const action = {
-  "@sendAll": (socket) => {
-    console.log("action: @example")
+  "@sendScope": (socket, data) => {
+    console.log("action: @sendScope")
+    socket.send(`@updateScope>${JSON.stringify(scope)}`)
   },
-  "@example": (socket) => {
+  "@example": (socket, data) => {
     console.log("action: @example")
   },
 }
