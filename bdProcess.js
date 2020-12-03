@@ -1,9 +1,9 @@
 let scope = {
   word: "123",
   items: [
-    { todo: "get milk", amt: 5 },
-    { todo: "buy meat", amt: 3 },
-    { todo: "exercise", amt: 1 },
+    { todo: "get milk", amt: 5, prices: [3, 5, 6] },
+    { todo: "buy meat", amt: 3, prices: [30, 50, 60] },
+    { todo: "exercise", amt: 1, prices: [300, 500, 600] },
   ],
 }
 
@@ -18,7 +18,8 @@ const action = {
 }
 
 const message = (socket, msg) => {
-  scope[msg.p] = msg.v
+  console.log("msg", msg)
+  //scope[msg.p] = msg.v
 }
 
 module.exports = { action, message }

@@ -509,7 +509,8 @@
       var routineFn = this.binder.routine || this.binder
 
       if (routineFn instanceof Function) {
-        routineFn.call(this, this.el, value)
+        console.log("routineFn", this)
+        routineFn.call(this, this.el, value, this.observer.keypath, this.observer.obj.$index) // NOTE: This executes each time the element is bind'ed
       }
     } // Syncs up the view binding with the model.
 
@@ -1190,6 +1191,8 @@
       publishes: true,
       priority: 3000,
       bind: function bind(el) {
+        //console.log("bind value::::::", el) // NOTE: This is a good point where WS send can happen
+
         this.isRadio = el.tagName === "INPUT" && el.type === "radio"
 
         if (!this.isRadio) {
@@ -1210,21 +1213,31 @@
           el.removeEventListener(this.event, this.callback)
         }
       },
-      routine: function routine(el, value) {
+      routine: function routine(el, value, a, b, c) {
+        console.log("routine::::::", el, value, a, b, c)
+
+        //bdBus.publish("input", { el, value })
+
         if (this.isRadio) {
           el.setAttribute("value", value)
+          // wspoint
         } else {
           if (el.type === "select-multiple") {
             if (value instanceof Array) {
               for (var i = 0; i < el.length; i++) {
                 var option = el[i]
                 option.selected = value.indexOf(option.value) > -1
+                // wspoint
               }
             }
           } else if (getString(value) !== getString(el.value)) {
             el.value = value != null ? value : ""
+            // wspoint
           }
         }
+        //
+
+        //
       },
     },
     // Inserts and binds the element and it's child nodes into the DOM when true.

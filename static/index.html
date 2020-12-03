@@ -31,23 +31,34 @@
       integrity="sha512-sgDgZX/GgfD7qSeMjPN/oE9EQgXZJW55FIjdexVT60QerG2gAWhR9QDQEGt3O90Dy9jVcwMWsoTMhLgldIiKXw=="
       crossorigin="anonymous"
     ></script>
+    <script src="./bdBus.js"></script>
     <script src="./boydog-bind.js"></script>
   </head>
 
   <body>
     <div>
       <p>word: <input rv-value="word" /></p>
-      <p>word text: <span rv-text="word"></span></p>
+      <!-- <p>word text: <span rv-text="word"></span></p> -->
       <ul>
         <li rv-each-item="items">
           <p>todo: <input rv-value="item.todo" /></p>
-          <p>todo text: <span rv-text="item.todo"></span></p>
-          <p>amt text: <span rv-text="item.amt"></span></p>
+          <!-- <ul>
+            <li rv-each-price="item.prices">
+              <p>price: <input rv-value="price" /></p>
+            </li>
+          </ul> -->
+          <!-- <p>todo text: <span rv-text="item.todo"></span></p>
+          <p>amt text: <span rv-text="item.amt"></span></p> -->
         </li>
       </ul>
       <p>all items: <span rv-text="items"></span></p>
     </div>
     <script>
+      bdBus.subscribe("input", (msg) => {
+        console.log("bdBus input", msg)
+        //socket.send(JSON.stringify({ p: flatPath, v: val }))
+      })
+
       const bdProcess = (() => {
         let scope = {}
 
@@ -56,6 +67,12 @@
             Object.assign(scope, JSON.parse(data))
             console.log("Connected and received scope", scope)
             tinybind.bind(document.getElementsByTagName("body")[0], scope)
+            /*tinybind.adapters[":"] = {
+              observe: function (obj, keypath, callback) {
+                console.log("observe", obj, keypath, callback)
+                //obj.on("change:" + keypath, callback)
+              },
+            }*/
           },
         }
 
