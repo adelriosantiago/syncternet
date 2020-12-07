@@ -31,7 +31,7 @@ wsServer.on("connection", (socket) => {
       try {
         bdProcess.action[match.slice(0, -1)](socket, msg.substr(match.length))
       } catch (e) {
-        console.log("Action received but handler not found", e)
+        console.log("Action received but handler not found or throws error", e)
       }
       return
     }

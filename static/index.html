@@ -36,19 +36,39 @@
   <body>
     <div>
       <ul>
-        <li bd-for="items>\d+>">
+        <li bd-loop="items>\d+>">
           <p>todo: <input bd-value="$todo" /></p>
         </li>
       </ul>
     </div>
     <script>
       const bdProcess = (() => {
+        const attrLoop = ["bd-loop"]
+        const attrNormal = ["bd-value", "bd-id"]
+
         let scope = {}
+
+        const getMatches = (str) => {
+          const k = Object.keys(scope)
+            .map((e) => {
+              const m = e.match(new RegExp(`^(.*)(${str})(.*)$`)) || []
+              return { $$: m[1], "$<": m[2], "$>": m[3] }
+            })
+            .filter((e) => !!e)
+        }
+
+        const processLoops = () => {
+          $(`[${attrLoop}]`).each((i, el) => {
+            const arrPath = el.getAttribute(attrLoop)
+            const matches = getMatches(arrPath)
+          })
+        }
 
         const action = {
           "@init": (data) => {
             Object.assign(scope, JSON.parse(data))
             console.log("Connected and received scope", scope)
+            processLoops()
           },
         }
 
@@ -80,7 +100,7 @@
           try {
             bdProcess.action[match.slice(0, -1)](msg.substr(match.length))
           } catch (e) {
-            console.log("Action received but handler not found", e)
+            console.log("Action received but handler not found or throws error", e)
           }
           return
         }
