@@ -49,18 +49,21 @@
         let scope = {}
 
         const getMatches = (str) => {
-          const k = Object.keys(scope)
+          const matches = Object.keys(scope)
             .map((e) => {
               const m = e.match(new RegExp(`^(.*)(${str})(.*)$`)) || []
               return { $$: m[1], "$<": m[2], "$>": m[3] }
             })
-            .filter((e) => !!e)
+            .filter((e) => e.$$ !== undefined)
+
+          return matches
         }
 
         const processLoops = () => {
           $(`[${attrLoop}]`).each((i, el) => {
             const arrPath = el.getAttribute(attrLoop)
             const matches = getMatches(arrPath)
+            console.log("m", matches)
           })
         }
 
