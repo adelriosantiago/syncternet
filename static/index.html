@@ -63,7 +63,9 @@
           $(`[${attrLoop}]`).each((i, el) => {
             const arrPath = el.getAttribute(attrLoop)
             const matches = getMatches(arrPath)
-            console.log("m", matches)
+            matches.forEach((m) => {
+              console.log("needs to by copied:", el, m)
+            })
           })
         }
 
