@@ -1,9 +1,14 @@
 # boydog no OT
 
 This is the pipeline:
-on html input -> update front flat scope (non-reactive reference) -> server scope -> update front flat scope (if different) -> update html
 
-There is a scope in html and it is flat. The server scope is deep.
+- On html input
+- Update front flat scope (non-reactive reference)
+- Update server scope
+- Update front flat scope (if different)
+- Update html
+
+Both scopes, front and back are flat.
 
 Interesting resources:
 
@@ -16,7 +21,7 @@ Interesting resources:
 This section describes how each attribute works internally.
 ### Looping (`bd-loop`):
 
-Given the scope:
+Given the server scope:
 
 ```js
 let scope = {
@@ -27,7 +32,7 @@ let scope = {
 }
 ```
 
-And the HTML:
+And the client HTML:
 
 ```html
 <li bd-loop="items>\d+>">
@@ -59,15 +64,7 @@ This process, step by step happened as follows. Given the initial HTML,
 </li>
 ```
 
-Preemptively get all matches and save them as  `matches`. If `matches.length` is different to `_bd-last-matches` or if there is no such attribute, then continue. Check that this is a valid loop by validating that the parent has only 1 children, and this children has a `bd-loop` attribute.
-
-```html
-<li bd-loop="items>\d+>">
-    <p>todo: <input bd-value="$$todo" /></p>
-</li>
-```
-
-The looping structure is saved as `blueprintView` without the `bd-loop` attribute. Therefore `blueprintView` is equal to:
+check if there is a `blueprintView` variable inside the element. If there is not, then save one removing the `bd-loop` attribute. Therefore `blueprintView` of the DOM element should now be equal to:
 
 ```html
 <li>
@@ -75,7 +72,17 @@ The looping structure is saved as `blueprintView` without the `bd-loop` attribut
 </li>
 ```
 
-Returning to the initial HTML, this element's children are scanned for any `bd-*` attribute that contains `$$`, `$>` or `$<` and that is directly under the `bd-loop` we are processing. Since there are matches, each found instance gets this attribute copied into `_bd-[type]-original` resulting in:
+Preemptively get all matches and save them, in this example `matches = ["items>0>", "items>1>", "items>2>"]`. If `matches.length` is equal to the  `_bd-last-matches` attribute then bailout as there is no need to bake again the structure when the length has not changed.
+
+Returning back to the initial HTML and assuming that `_bd-last-matches` didn't exist or it was different from `matches` , save this number into the looping element.
+
+```html
+<li bd-loop="items>\d+>" _bd-last-matches"3">
+    <p>todo: <input bd-value="$$todo" _bd-value-original="$$todo"/></p>
+</li>
+```
+
+This element's children are scanned for any `bd-*` attribute that contains `$$`, `$>` or `$<` <u>that is directly under the `bd-loop` we are processing</u>. Since there one match, save it into `_bd-[type]-original`:
 
 ```html
 <li bd-loop="items>\d+>">
@@ -83,7 +90,7 @@ Returning to the initial HTML, this element's children are scanned for any `bd-*
 </li>
 ```
 
-Since `matches` is `["items>0>", "items>1>", "items>2>"]` and its length is 3. Add this to `_bd-last-matches`. Then create and append 2 more instances of `blueprintView`. Code so far:
+Since `matches.length` is 3, clone and append 2 more instances of `blueprintView`:
 
 ```html
 <li bd-loop="items>\d+>" _bd-last-matches="3">
@@ -97,7 +104,7 @@ Since `matches` is `["items>0>", "items>1>", "items>2>"]` and its length is 3. A
 </li>
 ```
 
-Iterate again each children while replacing any `$$`, `$>` or `$<` found by the value from the matches. Resulting in:
+Iterate again each children while regex replacing any `$$`, `$>` or `$<` found by the value from the matches. This results in:
 
 ```html
 <li bd-loop="items>\d+>" _bd-last-matches="3">
