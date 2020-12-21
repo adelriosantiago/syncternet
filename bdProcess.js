@@ -1,7 +1,6 @@
-// Status:
-// [ ] Rock
-// [X] Plastic
-// [ ] Paper
+// - Rock
+// -> Plastic
+// - Paper
 
 let ws, wsServer
 
