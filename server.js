@@ -21,7 +21,7 @@ app.get("/exampleGetScope", (req, res) => {
 // Init server
 const server = http.createServer(app)
 
-// Websocket init
+// wsEngine module
 const wsServer = new ws.Server({ noServer: true })
 bdProcess.init(ws, wsServer)
 
