@@ -55,8 +55,15 @@
 
       const bdProcess = (() => {
         const prefix = "bd"
-        const attrLoop = `${prefix}-loop`
-        const attrNormal = [`${prefix}-value`, `${prefix}-id`]
+        const attr = {
+          loop: `${prefix}-loop`,
+          normal: [`${prefix}-value`, `${prefix}-id`],
+          internal: {
+            blueprint: "_bd-blueprint",
+            original: "_bd-value-original",
+            lastMatches: "_bd-last-matches",
+          },
+        }
 
         let scope = {}
         let modelScope = {}
@@ -73,40 +80,40 @@
         }
 
         const processLoops = () => {
-          $(`[${attrLoop}]`).each((i, el) => {
+          $(`[${attr.loop}]`).each((i, el) => {
             el = $(el)
 
             // Save blueprint if needed
-            if (el.attr("_bd-blueprint") === undefined) {
-              el.attr("_bd-blueprint", el.clone().removeAttr(attrLoop).get(0).outerHTML.trim())
+            if (el.attr(attr.internal.blueprint) === undefined) {
+              el.attr(attr.internal.blueprint, el.clone().removeAttr(attr.loop).get(0).outerHTML.trim())
             }
 
             // Get matches
             const parent = el.parent()
-            const matches = getMatches(el.attr(attrLoop))
+            const matches = getMatches(el.attr(attr.loop))
 
             // Check if there are more elements or less elements
             const newL = matches.length
-            const currentL = el.attr("_bd-last-matches")
+            const currentL = el.attr(attr.internal.lastMatches)
             if (+newL === +currentL) return // Return since the elements are the same
-            el.attr("_bd-last-matches", newL)
+            el.attr(attr.internal.lastMatches, newL)
 
             // Create extra elements
             matches.forEach((m, key) => {
               if (key === 0) return
               if (key < +currentL) return
-              parent.append($(el.attr("_bd-blueprint")).clone())
+              parent.append($(el.attr(attr.internal.blueprint)).clone())
             })
 
             // Process element 0
             el.find("[bd-value*='$$']").each((i, f) => {
               f = $(f)
 
-              if (f.closest(`[${attrLoop}]`)[0] !== el[0]) {
+              if (f.closest(`[${attr.loop}]`)[0] !== el[0]) {
                 // When element found is under another bd-loop (TODO: fix)
                 return
               }
-              f.attr("_bd-value-original", f.attr("bd-value"))
+              f.attr(attr.internal.original, f.attr("bd-value"))
             })
 
             // Bake match structures
