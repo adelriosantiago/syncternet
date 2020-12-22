@@ -46,8 +46,16 @@
           <p>todo: <input bd-value="$$todo" /></p>
         </li>
       </ul>
-      <button bd-click="@addItem">add item</button>
+      <button id="addItem">add item</button>
     </div>
+    <script>
+      // -> Rock
+      // - Plastic
+      // - Paper
+      $("#addItem").on("click", () => {
+        socket.send(JSON.stringify({ p: "items>3>todo", v: "new item" }))
+      })
+    </script>
     <script>
       // - Rock
       // -> Plastic
@@ -158,14 +166,15 @@
             })
           })
 
-          $("[bd-click]").each((i, el) => {
+          // TODO: Send @action to the server
+          /*$("[bd-click]").each((i, el) => {
             el = $(el)
 
             //TODO: Process actions, when clicking the action should be sent to the server
             el.on("click", (ev) => {
               socket.send(JSON.stringify({ p: "items>3>todo", v: "new item" }))
             })
-          })
+          })*/
         }
 
         const action = {
