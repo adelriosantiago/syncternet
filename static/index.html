@@ -78,7 +78,7 @@
 
             // Save blueprint if needed
             if (el.attr("_bd-blueprint") === undefined) {
-              el.attr("_bd-blueprint", el.clone().removeAttr(attrLoop).html().trim())
+              el.attr("_bd-blueprint", el.clone().removeAttr(attrLoop).get(0).outerHTML.trim())
             }
 
             // Get matches
