@@ -6,9 +6,7 @@ const port = 3091
 const http = require("http")
 const express = require("express")
 const bodyParser = require("body-parser")
-const ws = require("ws")
-const bdProcess = require("./bdProcess.js")
-
+const boydog = require("./boydog.js") // TODO: Make module
 const app = express()
 app.use(express.static("static"))
 app.use(bodyParser.json())
@@ -21,42 +19,15 @@ app.get("/exampleGetScope", (req, res) => {
 // Init server
 const server = http.createServer(app)
 
-// wsEngine module
-const wsServer = new ws.Server({ noServer: true })
-bdProcess.init(ws, wsServer)
+let scope = {
+  word: "123",
+  "items>0>todo": "buy milk",
+  "items>1>todo": "buy meat",
+  "items>2>todo": "fix car",
+}
 
-wsServer.on("connection", (socket) => {
-  console.log("New client")
+boydog.init(scope, server)
 
-  bdProcess.action["@init"](socket)
-
-  socket.on("message", (msg) => {
-    // For special actions
-    if (msg[0] === "@") {
-      const match = (msg.match(/@\w+\|/) || [])[0]
-      try {
-        bdProcess.action[match.slice(0, -1)](socket, msg.substr(match.length))
-      } catch (e) {
-        console.log("Action received but handler not found or throws error", e)
-      }
-      return
-    }
-
-    try {
-      msg = JSON.parse(msg)
-    } catch (e) {
-      console.log("Invalid message", e)
-    }
-    bdProcess.message(socket, msg)
-  })
+server.listen(port, () => {
+  console.log(`Listening on http://localhost:${port}`)
 })
-
-server
-  .listen(port, () => {
-    console.log(`Listening on http://localhost:${port}`)
-  })
-  .on("upgrade", (request, socket, head) => {
-    wsServer.handleUpgrade(request, socket, head, (socket) => {
-      wsServer.emit("connection", socket, request)
-    })
-  })

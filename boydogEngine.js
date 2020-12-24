@@ -2,14 +2,13 @@
 // -> Plastic
 // - Paper
 
-let ws, wsServer
+const WS_CONNECTING = 0
+const WS_OPEN = 1
+const WS_CLOSING = 2
+const WS_CLOSED = 3
 
-let scope = {
-  word: "123",
-  "items>0>todo": "buy milk",
-  "items>1>todo": "buy meat",
-  "items>2>todo": "fix car",
-}
+let wsServer
+let scope = {}
 
 const action = {
   "@init": (socket, data) => {
@@ -22,20 +21,19 @@ const action = {
 }
 
 const message = (socket, msg) => {
-  console.log("msg", msg)
   scope[msg.p] = msg.v
 
   // Send to clients
   setTimeout(() => {
     wsServer.clients.forEach((client) => {
-      if (client.readyState === ws.OPEN) client.send(JSON.stringify({ p: msg.p, v: msg.v }))
+      if (client.readyState === WS_OPEN) client.send(JSON.stringify({ p: msg.p, v: msg.v }))
     })
   }, 0)
 }
 
-const init = (_ws, _wsServer) => {
-  ws = _ws
+const init = (_wsServer, _scope) => {
   wsServer = _wsServer
+  scope = _scope
 }
 
 module.exports = { action, message, init }
