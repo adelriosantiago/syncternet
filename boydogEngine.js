@@ -21,6 +21,8 @@ const action = {
 }
 
 const message = (socket, msg) => {
+  console.log("msg", msg)
+
   scope[msg.p] = msg.v
 
   // Send to clients
