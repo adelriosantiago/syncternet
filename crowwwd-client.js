@@ -81,13 +81,20 @@ new Vue({
 
     // Old mounted
 
-    $("body *").mouseenter((ev) => {
+    document.onmouseover = (e) => {
+      e = e || window.event
+
+      const el = e.target || el.srcElement
+      console.log("e, el", e, el)
+
       // Update and send xpath
-      const path = xpath(ev.target)
+      const path = xpath(el)
+      console.log("pppath", path)
+
       this.users.self.pos.path = path
 
       // Update self icon position
-      const rect = ev.target.getBoundingClientRect()
+      const rect = el.getBoundingClientRect()
       const coords = {
         x: rect.left + window.scrollX,
         y: rect.top + window.scrollY,
@@ -95,7 +102,7 @@ new Vue({
 
       this.users.self.pos.x = coords.x
       this.users.self.pos.y = coords.y
-    })
+    }
 
     /*// Debug user movement
     setTimeout(() => {
