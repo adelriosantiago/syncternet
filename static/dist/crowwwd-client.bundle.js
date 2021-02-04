@@ -86,12 +86,9 @@ new Vue({
       e = e || window.event
 
       const el = e.target || el.srcElement
-      console.log("e, el", e, el)
 
       // Update and send xpath
       const path = xpath(el)
-      console.log("pppath", path)
-
       this.users.self.pos.path = path
 
       // Update self icon position
