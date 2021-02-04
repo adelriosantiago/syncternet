@@ -8,14 +8,14 @@ const WS_CLOSING = 2
 const WS_CLOSED = 3
 
 let wsServer
-let scope = {}
+let public = {}
 
 const action = {
-  "@init": (socket, data) => {
+  "@init": (socket, msg) => {
     console.log("action: @init")
-    socket.send(`@init|${JSON.stringify(scope)}`)
+    socket.send(`@init|${JSON.stringify(public)}`)
   },
-  "@example": (socket, data) => {
+  "@example": (socket, msg) => {
     console.log("action: @example")
   },
 }
@@ -23,7 +23,7 @@ const action = {
 const message = (socket, msg) => {
   console.log("msg", msg)
 
-  scope[msg.p] = msg.v
+  public[msg.p] = msg.v
 
   // Send to clients
   setTimeout(() => {
@@ -33,9 +33,9 @@ const message = (socket, msg) => {
   }, 0)
 }
 
-const init = (_wsServer, _scope) => {
+const init = (_wsServer, _public) => {
   wsServer = _wsServer
-  scope = _scope
+  public = _public
 }
 
 module.exports = { action, message, init }

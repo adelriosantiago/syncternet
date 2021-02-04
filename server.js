@@ -8,18 +8,19 @@ const express = require("express")
 const bodyParser = require("body-parser")
 const crowwwdServer = require("./crowwwd-server.js") // TODO: Make module
 const app = express()
+
 app.use(express.static("static"))
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
-app.get("/exampleGetScope", (req, res) => {
-  return res.json(scope)
+app.get("/exampleGetPublic", (req, res) => {
+  return res.json(public)
 })
 
 // Init server
 const server = http.createServer(app)
 
-let scope = {
+let public = {
   word: "WORD",
   checkbox: true,
   sample: {
@@ -34,7 +35,7 @@ let scope = {
   otherList: [{ todo: "+++get milk" }, { todo: "+++buy meat" }, { todo: "+++exercise" }],
 }
 
-crowwwdServer.init(scope, server)
+crowwwdServer.init(public, server)
 
 server.listen(port, () => {
   console.log(`Listening on http://localhost:${port}`)

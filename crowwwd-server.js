@@ -5,7 +5,7 @@
 const ws = require("ws")
 const boydogEngine = require("./boydogEngine.js")
 
-const init = (scope, server) => {
+const init = (public, server) => {
   const wsServer = new ws.Server({ server })
   wsServer.on("connection", (socket) => {
     console.log("New client connected")
@@ -34,7 +34,7 @@ const init = (scope, server) => {
     })
   })
 
-  boydogEngine.init(wsServer, scope) // Action and message engine
+  boydogEngine.init(wsServer, public) // Action and message engine
 }
 
 module.exports = { init }

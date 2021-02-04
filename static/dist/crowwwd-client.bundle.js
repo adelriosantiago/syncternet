@@ -6,7 +6,6 @@
 const Vue = require("./vendor/vue.min.js")
 const ReconnectingWebSocket = require("reconnecting-websocket")
 const xpath = require("./vendor/xpath-micro.js")
-console.log("x", xpath)
 
 window.CROWWWD = {
   ONLINE: 1,
@@ -16,8 +15,10 @@ window.CROWWWD = {
 }
 
 new Vue({
-  el: "#crowwwd-partyon",
+  el: "#crowwwd",
   data: {
+    public: {}, // Realtime data, every user has a copy of this
+    private: {}, // Local data, every user has it own data
     users: {
       self: {
         pic: "https://via.placeholder.com/150",
@@ -37,51 +38,9 @@ new Vue({
   },
   created() {},
   mounted() {
-    socket = new ReconnectingWebSocket(`ws://${window.location.host}`)
+    this.crowwwdEngineStart()
 
-    let scope = {}
-
-    const specialActions = {
-      "@init": (data) => {
-        console.log("init with data:", data)
-      },
-      "@refresh": () => {
-        //
-      },
-    }
-
-    // Socket events
-    socket.onopen = () => {
-      console.log("WebSocket open")
-    }
-    socket.onerror = (error) => {
-      console.log(`WebSocket error: ${error}`)
-    }
-    socket.onmessage = (msg) => {
-      msg = msg.data
-
-      console.log(">>>>", msg)
-      // For special actions
-      if (msg[0] === "@") {
-        const match = (msg.match(/@\w+\|/) || [])[0]
-        try {
-          specialActions[match.slice(0, -1)](msg.substr(match.length))
-        } catch (e) {
-          console.log("Action received but handler not found or throws error", e)
-        }
-        return
-      }
-
-      // For normal commands
-      try {
-        msg = JSON.parse(msg)
-      } catch (e) {
-        console.log("Invalid message", e)
-      }
-    }
-
-    // Old mounted
-
+    // Original mounted code
     document.onmouseover = (e) => {
       e = e || window.event
 
@@ -108,7 +67,49 @@ new Vue({
       this.users.others[789].status = ONLINE
     }, 2000)*/
   },
-  methods: {},
+  methods: {
+    crowwwdEngineStart() {
+      socket = new ReconnectingWebSocket(`ws://${window.location.host}`)
+
+      const specialActions = {
+        "@init": (data) => {
+          console.log("init with data:", data)
+        },
+        "@refresh": () => {
+          //
+        },
+      }
+
+      // Socket events
+      socket.onopen = () => {
+        console.log("WebSocket open")
+      }
+      socket.onerror = (error) => {
+        console.log(`WebSocket error: ${error}`)
+      }
+      socket.onmessage = (msg) => {
+        msg = msg.data
+
+        // For special actions
+        if (msg[0] === "@") {
+          const match = (msg.match(/@\w+\|/) || [])[0]
+          try {
+            specialActions[match.slice(0, -1)](msg.substr(match.length))
+          } catch (e) {
+            console.log("Action received but handler not found or throws error", e)
+          }
+          return
+        }
+
+        // For normal commands
+        try {
+          msg = JSON.parse(msg)
+        } catch (e) {
+          console.log("Invalid message", e)
+        }
+      }
+    },
+  },
 })
 
 },{"./vendor/vue.min.js":5,"./vendor/xpath-micro.js":6,"reconnecting-websocket":3}],2:[function(require,module,exports){
