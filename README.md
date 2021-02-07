@@ -8,8 +8,8 @@ Users is stored in `users`  global variable. This variable maps UUID to username
 
 ``` json
 const users = {
-    "jumping-dog-123": "adelriosantiago",
-	"sleeping-cat-321": "scasbyte",
+    "jumping-dog-123": "johnDoe789",
+	"sleeping-cat-321": "janeDoe987",
     // ... and so on for other users
 }
 ```
@@ -25,7 +25,7 @@ Public information about the each user for each plugin is stored in `public`. Fo
 
 ```js
 const public = {
-	"party": {
+	party: {
     	"jumping-dog-123": {
             pos: {
             	x: 13,
@@ -40,7 +40,7 @@ const public = {
         },
 	    // ... and so on for other users
     },
-    "emoticons" : {
+    emoticons: {
     	// ... plugin data
     },
     // ... and so on for other plugins
@@ -65,26 +65,26 @@ const plugins = {
 }
 ```
 
-When a new server is started we begin listening to 2 events:
+When a new server is started we begin listening to the `onMessage` event. This is when a WS message is received. This may serve to update plugin data or for auth purposes. Each case is described below:
 
-- `onConnection`: Listens for client's first message when connected. There two cases:
-  - A completely new user connects:
-    - `"new"` is received.
-    - The server adds a new randomly-generated UUID and username to `users`.
-    - The server sends this information to the user. For example, `"new|jumping-dog-123|{ username: 'adelriosantiago' }"`.
-    - The server sends initial plugin information.
-  - An existing user connects:
-    - `"continue|jumping-dog-123|{ username: 'adelriosantiago' }"` is received since an existing user connected.
-    - We test if `"users['jumping-dog-123'] === adelriosantiago"`. There are 2 possibilities,
-      - It does not match: A new UUID and username is generated and sent to the client. For example: `"keys|jumping-dog-123"`.
-      - It matches: Nothing happens, the process continues.
-    - A newly-generated UUID and username are generated and added to `users`. This UUID is `"jumping-dog-123"`.
-    - The new UUID and all plugin information is sent to the connecting user. For example `"jumping-dog-123|{ html: [html content] }"`. (See the client's side to see how it handles this UUID).
-- `onMessage`: When a client does any change and sends the change to the server. Step by step:
-  - Server receives `"party|jumping-dog-123|{ pos: { x: 3, y: 2 } }"`.
-  - `public.party["jumping-dog-123"]` is updated with `{ pos: { x: 3, y: 2 } }`.
-  - We look for `jumping-dog-123` user from `users`. This is `adelriosantiago`.
-  - Server broadcasts `"party|adelriosantiago|{ pos: { x: 3, y: 2 } }"` to all clients except the sender.
+- - `"_new"` is received: This is a new user. Follow the steps,
+
+    1. Add a new, randomly-generated UUID and username pair to `users`.
+    2. Server sends `"_new|<UUID>|<username>"` to the client.
+    3. Send initial plugin information like `"_plugins|<plugins>"`.
+
+  - `"_continue|<UUID>|<username>"` is received: This is supposedly an existing user. Test if `users[<UUID>] === <username>`. There are 2 possibilities:
+
+    - It does not match: Don't continue and treat the user as a completely new user as described in previous steps.
+
+    - It matches: Plugin information is sent as described in previous steps.
+
+  - In all other cases, plugin information about another user is received and the following steps are taken:
+
+    1. Server receives `"party|<UUID>|{<plugin data>}"`.
+    2. `public.party[<UUID>]` is updated with plugin data.
+    3. Get username from `users`.
+    4. Server broadcasts `"party|<username>|{<plugin data>}"` to all clients <u>except</u> the sender.
 
 ### Client
 
@@ -95,10 +95,10 @@ new Vue({
     data: {
         public: { // Realtime data, every user has a copy of this
         	party: {
-                adelriosantiago: {
+                johnDoe123: {
                 	xpath: "", pos: { x: 3, y: 5 },
                 },
-                scasbyte: {
+                janeDoe987: {
                     xpath: "", pos: { x: 6, y: 8 },
                 },
                 // ... and so on for other users
@@ -110,7 +110,7 @@ new Vue({
         },
         private: { // Local data, every user has it own data
         	UUID: "jumping-dog-123", // What server sent us
-            username: "adelriosantiago", // What we chose
+            username: "johnDoe789", // What we chose
         },
     },
     created() {},
@@ -119,14 +119,34 @@ new Vue({
 })
 ```
 
-When an user opens a page with crowwwd the following happens:
+When a new user loads a crowwwd page we do:
 
-- The user connects.
-- We look for `crowwwd:UUID` and `crowwwd:username` at `localStorage`. There are two options then,
-  - If `UUID` exists, it is sent to the server. For example: `adelriosantiago|jumping-dog-123`.
-  - 
+1. Check if auth is present in `localStorage['crowwwd:auth']`. There are two possibilities with different responses:
+   - There is no auth data: `"_new"` is sent to the server as it a completely new user.
+   - This is a returning user: `"_continue|<UUID>|<username>"` is sent.
+2. Begin listening to the `onMessage` event. This is when a WS message is received. This may serve to update plugin data or for auth purposes. Each case is described below:
+
+	- `"_new|<UUID>|<username>"` is received: Update the UUID and username in `data.private`.
+	- `"_plugins|<plugins>"` is received: Add all missing HTMLs. Some of them may be already added manually by the developer.
+	- In all other cases, plugin information about another user is received and the following steps are taken:
+		1.  `"party|<username>|{<plugin data>}"` is received. Note how the UUID is not present.
+		2. Update `data.public[<username>]` with the new information.
 
 
+
+In the steps above we checked for `localStorage["crowwwd:auth"]`. This variable has the structure `"<UUID>:<username>"`. For example: `"jumping-dog-123:johnDoe789"`.
+
+
+
+## FAQ
+
+### Why client-server messages are not JSON?
+
+Because not using JSON is a little bit faster.
+
+### ...
+
+...
 
 ## SO resources:
 
