@@ -50,20 +50,6 @@ new Vue({
       e = e || window.event
       const el = e.target || el.srcElement
 
-      // TODO: Add pos to newData
-      /*const targetUser = this.users.others[this.private.username]
-      // Update and send xpath
-      const path = xpath(el)
-      targetUser.pos.path = path
-      // Update self icon position
-      const rect = el.getBoundingClientRect()
-      const coords = {
-        x: rect.left + window.scrollX,
-        y: rect.top + window.scrollY,
-      }
-      targetUser.pos.x = coords.x
-      targetUser.pos.y = coords.y*/
-
       const rect = el.getBoundingClientRect()
       const newData = {
         xpath: xpath(el),
@@ -82,8 +68,7 @@ new Vue({
       const crId = window.localStorage.getItem("crId") || ""
 
       // Init socket connection
-      //window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
-      window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}`)
+      window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
       window.CROWWWD.socket.onopen = () => this.onWSOpen
       window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
       window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
@@ -98,7 +83,6 @@ new Vue({
       const specialActions = ["_keys", "_plugins"]
       const execSpecialAction = {
         _keys: (username, data) => {
-          console.log("+++++++++++++action: _keys", username, data)
           this.private.UUID = data.UUID
           this.private.username = data.username
         },
@@ -115,12 +99,9 @@ new Vue({
       try {
         const [, plugin, username, data] = msg.match(/^(\w+)\|([\w-]+)\|(.*$)/) // Spec: https://regex101.com/r/YLyEmo/1
 
-        console.log(">>>", plugin, username, data)
-
         if (specialActions.includes(plugin)) return execSpecialAction[plugin](username, JSON.parse(data))
 
         //this.public[plugin][username] = JSON.parse(data) // TODO: Use merge/assign
-
         this.$set(this.public[plugin], username, JSON.parse(data))
         //_set(this.public[plugin], username, JSON.parse(data))
 

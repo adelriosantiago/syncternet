@@ -3,9 +3,7 @@
 // - Paper
 
 const ws = require("ws")
-//const boydogEngine = require("./boydogEngine.js")
-//const url = require("url")
-//const _pick = require("lodash.pick")
+const _pick = require("lodash.pick")
 const _get = require("lodash.get")
 const _set = require("lodash.set")
 const uuid = require("uuid")
@@ -72,12 +70,11 @@ const init = (pluginsToLoad, server) => {
         const [, plugin, UUID, data] = msg.match(/^(\w+)\|([\w-]+)\|(.*$)/) // Spec: https://regex101.com/r/YLyEmo/1
         if (specialActions.includes(plugin)) return execSpecialAction[plugin](socket, UUID, JSON.parse(data))
 
-        //public[plugin][UUID] = JSON.parse(data) // TODO: Use _.set so that the settings is created if it doesn't exists
         _set(public, UUID, JSON.parse(data))
 
         // Broadcast new information
         wsServer.clients.forEach((client) => {
-          //if (client === socket) return
+          //if (client === socket) return // To skip sender (currently we broadcast to everyone)
           if (client.readyState === WS_OPEN) client.send(`${plugin}|${users[UUID]}|${data}`)
         })
       } catch (e) {
@@ -85,8 +82,6 @@ const init = (pluginsToLoad, server) => {
       }
     })
   })
-
-  //boydogEngine.init(wsServer) // Action and message engine
 }
 
 module.exports = { init }
