@@ -47,17 +47,20 @@ const init = (pluginsToLoad, server) => {
   wsServer.on("connection", (socket) => {
     console.log("New client connected")
 
-    socket.send(`@plugins|${JSON.stringify(pluginInject())}`) // Send plugins to inject
+    socket.send("@plugins" + "|" + JSON.stringify(pluginInject())) // Send plugins to inject
 
     // Create new session or continue an old one
-    const crId = "" // TODO: Get from url, a, b, c
+    const crId = ""
     if (crId === "") {
       // TODO: Address the issue when there is crId but id doesn't match
       const newUUID = uuid.v4()
       const newUsername = haikunator.haikunate()
 
       users[newUUID] = newUsername
-      socket.send(`@keys|${JSON.stringify({ UUID: newUUID, username: newUsername })}`)
+      socket.send("@keys" + "|" + JSON.stringify({ UUID: newUUID, username: newUsername }))
+
+      // Send existing public data
+      Object.keys(public).forEach((UUID) => socket.send(users[UUID] + "|" + JSON.stringify(public[UUID])))
     }
 
     socket.on("message", (msg) => {
