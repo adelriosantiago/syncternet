@@ -25,8 +25,8 @@ new Vue({
       // Realtime data, every user has a copy of this with the same contents
     },
     private: {
-      UUID: "SECRET_UUID",
-      username: "TESTUSER",
+      UUID: "",
+      username: "",
     }, // Local data, every user has it own data
   },
   created() {},
@@ -41,6 +41,8 @@ new Vue({
       const rect = el.getBoundingClientRect()
       const party = {
         xpath: xpath(el),
+        pic: "https://via.placeholder.com/150",
+        status: window.CROWWWD.ONLINE,
         pos: {
           x: rect.left + window.scrollX,
           y: rect.top + window.scrollY,
