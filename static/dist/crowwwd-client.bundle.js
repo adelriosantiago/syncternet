@@ -18,93 +18,94 @@ window.CROWWWD = {
   Y_OFFSET: 15,
 }
 
-new Vue({
-  el: "#crowwwd",
-  data: {
-    public: {
-      // Realtime data, every user has a copy of this with the same contents
+const initVue = () => {
+  return new Vue({
+    el: "#crowwwd",
+    data: {
+      public: {
+        // Realtime data, every user has a copy of this with the same contents
+      },
+      private: {
+        UUID: "",
+        username: "",
+      }, // Local data, every user has it own data
     },
-    private: {
-      UUID: "",
-      username: "",
-    }, // Local data, every user has it own data
-  },
-  created() {},
-  mounted() {
-    this.startWSClient()
+    created() {},
+    mounted() {
+      this.startWSClient()
 
-    // Party plugin starts here (original code)
-    document.onmouseover = (e) => {
-      e = e || window.event
-      const el = e.target || el.srcElement
+      // Party plugin starts here (original code)
+      document.onmouseover = (e) => {
+        e = e || window.event
+        const el = e.target || el.srcElement
 
-      const rect = el.getBoundingClientRect()
-      const newData = {
-        xpath: xpath(el),
-        pic: "https://via.placeholder.com/150",
-        status: window.CROWWWD.ONLINE,
-        pos: {
-          x: rect.left + window.scrollX,
-          y: rect.top + window.scrollY,
-        },
+        const rect = el.getBoundingClientRect()
+        const newData = {
+          xpath: xpath(el),
+          pic: "https://via.placeholder.com/150",
+          status: window.CROWWWD.ONLINE,
+          pos: {
+            x: rect.left + window.scrollX,
+            y: rect.top + window.scrollY,
+          },
+        }
+
+        this.wsSend("party", newData)
       }
-
-      this.wsSend("party", newData)
-    }
-    // Party plugin ends here
-  },
-  methods: {
-    startWSClient() {
-      // Check for previous auth data
-      const crId = window.localStorage.getItem("crId") || ""
-
-      // Init socket connection
-      window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
-      window.CROWWWD.socket.onopen = () => this.onWSOpen
-      window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
-      window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+      // Party plugin ends here
     },
-    onWSOpen() {
-      console.log("WebSocket open")
+    methods: {
+      startWSClient() {
+        // Check for previous auth data
+        const crId = window.localStorage.getItem("crId") || ""
+
+        // Init socket connection
+        window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
+        window.CROWWWD.socket.onopen = () => this.onWSOpen
+        window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
+        window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+      },
+      onWSOpen() {
+        console.log("WebSocket open")
+      },
+      onWSError() {
+        console.log(`WebSocket error: ${err}`)
+      },
+      onWSMessage(msg) {
+        const specialActions = ["@keys", "@plugins"]
+        const execSpecialAction = {
+          "@keys": (data) => {
+            this.private.UUID = data.UUID
+            this.private.username = data.username
+          },
+          "@plugins": (data) => {
+            if (!$("#crowwwd").length) {
+              $("body").append(data)
+              initVue() // Restart now that #crowwwd exists
+            }
+          },
+        }
+
+        try {
+          const [, username, plugin, data] = msg.match(/^([@\w-]+)\|(.*)\|(.*)$/) // Spec: https://regex101.com/r/dqa4nI/4
+
+          if (specialActions.includes(username)) return execSpecialAction[username](JSON.parse(data))
+
+          if (this.public[username] === undefined)
+            return this.$set(this.public, username, { [plugin]: JSON.parse(data) })
+          Object.assign(this.public[username][plugin], JSON.parse(data))
+        } catch (e) {
+          console.log(`Message or action '${msg}' throws ${e}.`)
+        }
+      },
+      wsSend(plugin, data) {
+        window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
+      },
     },
-    onWSError() {
-      console.log(`WebSocket error: ${err}`)
-    },
-    onWSMessage(msg) {
-      const specialActions = ["@keys", "@plugins"]
-      const execSpecialAction = {
-        "@keys": (data) => {
-          this.private.UUID = data.UUID
-          this.private.username = data.username
-        },
-        "@plugins": (data) => {
-          console.log("action: _plugins DATA:::", data)
+  })
+}
 
-          // TODO: Inject html (and create user?)
-
-          //this.public.party = {}
-          //this.public.emoticons = {}
-
-          //$("body").append(data.party.html)
-        },
-      }
-
-      try {
-        const [, username, plugin, data] = msg.match(/^([@\w-]+)\|(.*)\|(.*)$/) // Spec: https://regex101.com/r/dqa4nI/4
-
-        if (specialActions.includes(username)) return execSpecialAction[username](JSON.parse(data))
-
-        if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: JSON.parse(data) })
-        Object.assign(this.public[username][plugin], JSON.parse(data))
-      } catch (e) {
-        console.log(`Message or action '${msg}' throws ${e}.`)
-      }
-    },
-    wsSend(plugin, data) {
-      window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
-    },
-  },
-})
+initVue() // Start fake init
 
 },{"./vendor/cash.min.js":7,"./vendor/vue.min.js":8,"./vendor/xpath-micro.js":9,"lodash.get":2,"lodash.set":3,"reconnecting-websocket":5}],2:[function(require,module,exports){
 (function (global){(function (){

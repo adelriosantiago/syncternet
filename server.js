@@ -1,5 +1,5 @@
-// - Rock
-// -> Plastic
+// -> Rock
+// - Plastic
 // - Paper
 
 const port = 3091
@@ -14,7 +14,7 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({ extended: true }))
 
 app.get("/debug", (req, res) => {
-  return res.json({ users, public })
+  return res.json(crowwwdServer.store().public)
 })
 
 // Init server

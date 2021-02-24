@@ -27,7 +27,19 @@ let private = {}
 let plugins = {
   party: {
     frontend: {
-      html: "<div>party plugin</div>",
+      html: `
+      <div
+        class="absolute z-50"
+        style="pointer-events: none"
+        :style="{'left': C.party.pos.x + 'px', 'top': C.party.pos.y + 'px' }"
+      >
+        <img class="inline-block object-cover w-12 h-12 rounded-full" :src="C.party.pic" :alt="username" />
+        <span
+          class="absolute bottom-0 left-0 inline-block w-3 h-3 border border-white rounded-full"
+          :class="{'bg-green-600': C.party.status === CROWWWD.ONLINE, 'bg-yellow-600': C.party.status === CROWWWD.AWAY, 'bg-gray-600': C.party.status === undefined}"
+        ></span>
+        <span class="text-sm text-white" style="background-color: rgba(0, 0, 0, 0.5)">{{username}}</span>
+      </div>`,
       middleware: {},
     },
     backend: {
@@ -66,9 +78,14 @@ const execSpecialAction = {
 }
 
 const pluginInject = () => {
-  return `<div id="crowwwd">${Object.values(plugins)
-    .map((p) => p.frontend.html)
-    .join("")}</div>`
+  return `
+  <div id="crowwwd">
+    <div v-for="(C, username) in public" :key="username">
+      ${Object.values(plugins)
+        .map((p) => p.frontend.html)
+        .join("")}
+    </div>
+  </div>`
 }
 
 const send = (socket, username, plugin, data) => {
@@ -144,4 +161,8 @@ const init = (pluginsToLoad, server) => {
   })
 }
 
-module.exports = { init }
+const store = () => {
+  public, private, users
+}
+
+module.exports = { init, store }
