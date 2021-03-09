@@ -6,6 +6,7 @@
   "scripts": {
     "start": "node ./server.js",
     "build": "browserify ./crowwwd-client.js -o ./static/dist/crowwwd-client.bundle.js",
+    "build:tailwind": "postcss tailwind.source.css -o vendor/tailwind.min.css",
     "serve": "run-s build start",
     "dev": "nodemon --exec \"npm run serve\""
   },
@@ -21,11 +22,16 @@
     "ws": "^7.4.2"
   },
   "devDependencies": {
+    "autoprefixer": "^10.2.4",
     "browserify": "^17.0.0",
+    "cssnano": "^4.1.10",
     "haikunator": "^2.1.2",
     "lodash.topath": "^4.5.2",
     "nodemon": "^2.0.4",
     "npm-run-all": "^4.1.5",
+    "postcss": "^8.2.6",
+    "postcss-cli": "^8.3.1",
+    "tailwindcss": "^2.0.3",
     "url": "^0.11.0",
     "uuid": "^8.3.2",
     "vue": "^2.6.12"
