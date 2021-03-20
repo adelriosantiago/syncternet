@@ -1,7 +1,7 @@
 module.exports = {
   party: {
     frontend: {
-      html: `{{{party}}}`,
+      html: `{{{party}}}`, // TODO: This way of injecting HTML is unnecesary, it can be done with pure JS
       middleware: {},
     },
     backend: {
