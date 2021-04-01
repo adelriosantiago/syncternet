@@ -55,6 +55,7 @@ const initVue = () => {
         const specialActions = ["@keys", "@style", "@plugins"]
         const execSpecialAction = {
           "@keys": (data) => {
+            data = JSON.parse(data)
             this.private.UUID = data.UUID
             this.private.username = data.username
           },
@@ -74,6 +75,7 @@ const initVue = () => {
               eval(js)
             })
             initVue() // Restart now that #crowwwd exists
+            console.log("restarted")
           },
         }
 
