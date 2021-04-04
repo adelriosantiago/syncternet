@@ -75,7 +75,7 @@ const init = (pluginsToLoad, server) => {
     send(socket, "@plugins", "", await pluginInjectString())
 
     // Create new session or continue an old one
-    const crId = ""
+    const crId = "" // TODO: Obtain from URL
     if (crId === "") {
       // TODO: Address the issue when there is crId but id doesn't match
       const newUUID = uuid.v4()
@@ -90,30 +90,28 @@ const init = (pluginsToLoad, server) => {
     }
 
     socket.on("message", (msg) => {
-      try {
-        let [, UUID, plugin, data] = msg.match(/^([@\w-]+)\|(.*)\|(.*)$/) // Spec: https://regex101.com/r/dqa4nI/4
+      let [, UUID, plugin, data] = msg.match(/^([@\w-]+)\|(.*)\|(.*)$/) // Spec: https://regex101.com/r/dqa4nI/4
 
-        // For functions
-        if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, JSON.parse(data))
+      //try {
+      if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, data) // Special functions
+      data = JSON.parse(data)
+      //} catch (e) {
+      //console.log(`Message or action '${msg}' throws ${e}.`)
+      //}
 
-        // For plugin data
-        if (public[UUID] === undefined) public[UUID] = {}
-        if (private[UUID] === undefined) private[UUID] = {}
+      // For plugin data
+      if (public[UUID] === undefined) public[UUID] = {}
+      if (private[UUID] === undefined) private[UUID] = {}
+      data = plugins[plugin].backend.middleware["$"](
+        data,
+        buildSync(users[UUID], plugin),
+        UUID,
+        private[UUID],
+        public[UUID]
+      )
+      Object.assign(public[UUID], { [plugin]: data })
 
-        data = JSON.parse(data)
-        data = plugins[plugin].backend.middleware["$"](
-          data,
-          buildSync(users[UUID], plugin),
-          UUID,
-          private[UUID],
-          public[UUID]
-        )
-        Object.assign(public[UUID], { [plugin]: data })
-
-        broadcastData(users[UUID], plugin, JSON.stringify(data))
-      } catch (e) {
-        console.log(`Message or action '${msg}' throws ${e}.`)
-      }
+      broadcastData(users[UUID], plugin, JSON.stringify(data))
     })
   })
 }

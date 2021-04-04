@@ -57,6 +57,7 @@ const initVue = () => {
             data = JSON.parse(data)
             this.private.UUID = data.UUID
             this.private.username = data.username
+            window.localStorage.setItem("crId", data.UUID)
           },
           "@style": (data) => {
             if ($("style.crowwwd").length) return // Bailout when style is already there
@@ -78,17 +79,25 @@ const initVue = () => {
           },
         }
 
-        try {
-          const [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
-
-          if (specialActions.includes(username)) return execSpecialAction[username](data)
-
-          if (this.public[username] === undefined)
-            return this.$set(this.public, username, { [plugin]: JSON.parse(data) })
-          Object.assign(this.public[username][plugin], JSON.parse(data))
-        } catch (e) {
-          console.log(`Message or action '${msg}' throws ${e}.`)
+        const mid = {
+          $: (data, username, myself) => {
+            return data
+          },
         }
+
+        let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
+
+        //try {
+        if (specialActions.includes(username)) return execSpecialAction[username](data)
+        data = JSON.parse(data)
+        //} catch (e) {
+        //console.log(`Message or action '${msg}' throws ${e}.`)
+        //}
+
+        // For plugin data
+        data = mid["$"](data, username, username === this.private.username)
+        if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
+        Object.assign(this.public[username][plugin], data)
       },
       wsSend(plugin, data) {
         window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
