@@ -16,8 +16,7 @@ const haikunator = new (require("haikunator"))({
   },
 })
 
-const tailwindScoped = fs.readFileSync("./vendor/tailwind.min.css", { encoding: "utf8", flag: "r" })
-let plugins = require("./plugins/plugins.js") // Plugin definitions are added to this let variable
+const backendExport = require("./plugins/backendExport.js")
 
 const WS_CONNECTING = 0
 const WS_OPEN = 1
@@ -34,14 +33,6 @@ const execSpecialAction = {
   "@specialAction": (socket, data) => {
     console.log("@specialAction")
   },
-}
-
-const pluginInjectString = async () => {
-  let definitions = {}
-  for (const p of Object.keys(plugins))
-    definitions[p] = await fs.promises.readFile(`${__dirname}/plugins/${p}.html`, "utf8")
-
-  return JSON.stringify(definitions)
 }
 
 const send = (socket, username, plugin, data) => {
@@ -71,9 +62,6 @@ const init = (pluginsToLoad, server) => {
   wsServer.on("connection", async (socket) => {
     console.log("New client connected")
 
-    send(socket, "@style", "", tailwindScoped)
-    send(socket, "@plugins", "", await pluginInjectString())
-
     // Create new session or continue an old one
     const crId = "" // TODO: Obtain from URL
     if (crId === "") {
@@ -102,7 +90,7 @@ const init = (pluginsToLoad, server) => {
       // For plugin data
       if (public[UUID] === undefined) public[UUID] = {}
       if (private[UUID] === undefined) private[UUID] = {}
-      data = plugins[plugin].backend.middleware["$"](
+      data = backendExport.plugins[plugin].middleware["$"](
         data,
         buildSync(users[UUID], plugin),
         UUID,

@@ -17,93 +17,94 @@ window.CROWWWD = {
   Y_OFFSET: 15,
 }
 
-const initVue = () => {
-  return new Vue({
-    el: "div#crowwwd",
-    data: {
-      public: {
-        // Realtime data, every user has a copy of this with the same contents
-      },
-      private: {
-        UUID: "",
-        username: "",
-      }, // Local data, every user has it own data
-    },
-    created() {},
-    mounted() {
-      this.startWSClient()
-    },
-    methods: {
-      startWSClient() {
-        // Check for previous auth data
-        const crId = window.localStorage.getItem("crId") || ""
+// Append style and plugin templates
 
-        // Init socket connection
-        window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
-        window.CROWWWD.socket.onopen = () => this.onWSOpen
-        window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
-        window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
-      },
-      onWSOpen() {
-        console.log("WebSocket open")
-      },
-      onWSError() {
-        console.log(`WebSocket error: ${err}`)
-      },
-      onWSMessage(msg) {
-        const specialActions = ["@keys", "@style", "@plugins"]
-        const execSpecialAction = {
-          "@keys": (data) => {
-            data = JSON.parse(data)
-            this.private.UUID = data.UUID
-            this.private.username = data.username
-            window.localStorage.setItem("crId", data.UUID)
-          },
-          "@style": (data) => {
-            if ($("style.crowwwd").length) return // Bailout when style is already there
-            $("body").append(`<style class="crowwwd">${data}</style>`) // Append tailwind
-          },
-          "@plugins": (data) => {
-            if ($("div#crowwwd").length) return // Bailout when #crowwwd is already there
+const frontendExport = require("./plugins/frontendExport.js")
+const plugins = Object.keys(frontendExport.plugins)
 
-            $("body").append("<div id='crowwwd'></div>")
-            Object.entries(JSON.parse(data)).forEach((e) => {
-              const ob = $(e[1]).filter((i, el) => el.nodeName != "#text") // Will result in HTML in ob[0] and JS in ob[1]
-              const html = `<div v-for="(C, username) in public" :key="username">${ob[0].outerHTML}</div>`
-              const js = ob[1].innerHTML
-              $("div#crowwwd").append(html)
-              eval(js)
-            })
-            initVue() // Restart now that #crowwwd exists
-            console.log("restarted")
-          },
-        }
+if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${frontendExport.style}</style>`) // Append crowwwd style
+if (!$("div#crowwwd").length) {
+  $("body").append("<div id='crowwwd'></div>")
 
-        const mid = {
-          $: (data, username, myself) => {
-            return data
-          },
-        }
-
-        let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
-
-        //try {
-        if (specialActions.includes(username)) return execSpecialAction[username](data)
-        data = JSON.parse(data)
-        //} catch (e) {
-        //console.log(`Message or action '${msg}' throws ${e}.`)
-        //}
-
-        // For plugin data
-        data = mid["$"](data, username, username === this.private.username)
-        if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
-        Object.assign(this.public[username][plugin], data)
-      },
-      wsSend(plugin, data) {
-        window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
-      },
-    },
-  })
+  for (const p of plugins) {
+    $("div#crowwwd").append(
+      `<div v-for="(C, username) in public" :key="username">${frontendExport.plugins[p].html}</div>`
+    )
+  }
 }
 
-initVue() // Start fake init
+// Initialize crowwwd engine
+new Vue({
+  el: "div#crowwwd",
+  data: {
+    // Realtime data, every user has a copy of this with the same contents
+    public: {},
+    // Local data, every user has it own data
+    private: {
+      UUID: "",
+      username: "",
+    },
+  },
+  created() {},
+  mounted() {
+    this.startWSClient()
+    for (s of plugins.map((p) => frontendExport.plugins[p].script)) eval(s) // Run all plugins scripts
+  },
+  methods: {
+    startWSClient() {
+      // Check for previous auth data
+      const crId = window.localStorage.getItem("crId") || ""
+
+      // Init socket connection
+      window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
+      window.CROWWWD.socket.onopen = () => this.onWSOpen
+      window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
+      window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+    },
+    onWSOpen() {
+      console.log("WebSocket open")
+    },
+    onWSError() {
+      console.log(`WebSocket error: ${err}`)
+    },
+    onWSMessage(msg) {
+      const specialActions = ["@keys", "@style", "@plugins"]
+      const execSpecialAction = {
+        // TODO: Move outside onWSMessage function
+        "@keys": (data) => {
+          data = JSON.parse(data)
+          this.private.UUID = data.UUID
+          this.private.username = data.username
+          window.localStorage.setItem("crId", data.UUID)
+        },
+      }
+
+      // TODO: Move this middleware POC into frontendExports
+      const mid = {
+        $: (data, username, myself) => {
+          return data // TODO: Move to right place
+        },
+      }
+
+      let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
+
+      if (!username) return
+
+      //try {
+      if (specialActions.includes(username)) return execSpecialAction[username](data)
+      data = JSON.parse(data)
+      //} catch (e) {
+      //console.log(`Message or action '${msg}' throws ${e}.`)
+      //}
+
+      // For plugin data
+      data = mid["$"](data, username, username === this.private.username)
+      if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
+      Object.assign(this.public[username][plugin], data)
+    },
+    wsSend(plugin, data) {
+      if (!this.private.UUID) return
+      window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
+    },
+  },
+})
