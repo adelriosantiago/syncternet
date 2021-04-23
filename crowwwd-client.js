@@ -8,30 +8,9 @@ const xpath = require("./vendor/xpath-micro.js")
 const _get = require("lodash.get")
 const _set = require("lodash.set")
 const $ = require("./vendor/cash.min.js")
+const initialization = require("./initialization.js")
 
-window.CROWWWD = {
-  socket: undefined,
-  ONLINE: 1,
-  AWAY: 0,
-  X_OFFSET: 15,
-  Y_OFFSET: 15,
-  specialActions: ["@keys", "@style", "@plugins"],
-}
-
-// Append style and plugin templates
-const frontendExport = require("./exports/frontendExport.js")
-const plugins = Object.keys(frontendExport.plugins)
-
-if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${frontendExport.style}</style>`) // Append crowwwd style
-if (!$("div#crowwwd").length) {
-  $("body").append("<div id='crowwwd'></div>")
-
-  for (const p of plugins) {
-    $("div#crowwwd").append(
-      `<div v-for="(C, username) in public" :key="username">${frontendExport.plugins[p].html}</div>`
-    )
-  }
-}
+const scripts = initialization.run(window)
 
 // Initialize crowwwd engine
 new Vue({
@@ -48,7 +27,7 @@ new Vue({
   created() {},
   mounted() {
     this.startWSClient()
-    for (s of plugins.map((p) => frontendExport.plugins[p].script)) eval(s) // Run all plugins scripts
+    for (s of scripts) eval(s) // Run all plugins scripts
   },
   computed: {
     execSpecialAction() {
@@ -82,7 +61,30 @@ new Vue({
     onWSMessage(msg) {
       // TODO: Move this middleware POC into frontendExports
       const mid = {
-        $: (data, username, myself) => {
+        $: (data, username, isSelf) => {
+          let rect
+
+          try {
+            rect = xpath(data.xpath).getBoundingClientRect()
+          } catch (e) {
+            rect = { x: 0, y: 0 }
+          }
+
+          data.pos = {
+            x: Math.round(rect.x + document.documentElement.scrollLeft),
+            y: Math.round(rect.y + document.documentElement.scrollTop),
+          }
+
+          if (data.pos.y > scrollY + innerHeight) {
+            data.wayOut = "DOWN"
+            data.pos.y = scrollY + innerHeight - 40
+          } else if (data.pos.y < scrollY) {
+            data.wayOut = "UP"
+            data.pos.y = scrollY
+          } else {
+            data.wayOut = undefined
+          }
+
           return data // TODO: Move to right place
         },
       }

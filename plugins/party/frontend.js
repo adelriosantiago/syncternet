@@ -5,12 +5,8 @@ document.onmouseover = (e) => {
   const rect = el.getBoundingClientRect()
   const newData = {
     xpath: xpath(el),
-    pic: "https://via.placeholder.com/150",
     status: window.CROWWWD.ONLINE,
-    pos: {
-      x: rect.left + window.scrollX,
-      y: rect.top + window.scrollY,
-    },
+    pic: "https://via.placeholder.com/150", // TODO: Improve so that it is not sent everytime
   }
 
   this.wsSend("party", newData)

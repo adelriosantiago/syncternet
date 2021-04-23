@@ -1,5 +1,6 @@
 {
   "delay": "100",
   "ignoreRoot": [".git"],
+  "ext": "js,html",
   "watch": ["./*.js", "./plugins/*"]
 }
