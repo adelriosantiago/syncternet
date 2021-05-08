@@ -1,0 +1,11 @@
+<template>
+  <div
+    class="absolute z-50 transition-all"
+    style="pointer-events: none"
+    :style="{'left': C.party.pos.x + 'px', 'top': C.party.pos.y + 'px' }"
+  >
+    <span v-if="C.shout" class="text-sm text-white" style="background-color: rgba(0, 0, 0, 0.5); margin-top: 20px">
+      {{Object.values(C.shout).join('')}}
+    </span>
+  </div>
+</template>

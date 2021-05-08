@@ -62,6 +62,9 @@ new Vue({
       // TODO: Move this middleware POC into frontendExports
       const mid = {
         $: (data, username, isSelf) => {
+          return data
+        },
+        party: (data, username, isSelf) => {
           let rect
 
           try {
@@ -87,17 +90,30 @@ new Vue({
 
           return data // TODO: Move to right place
         },
+        shout: (data, username, isSelf) => {
+          return data
+        },
       }
 
-      let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
-      if (!username) return
-      if (window.CROWWWD.specialActions.includes(username)) return this.execSpecialAction[username](data)
-      data = JSON.parse(data)
+      try {
+        let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
+        if (!username) return
+        if (window.CROWWWD.specialActions.includes(username)) return this.execSpecialAction[username](data)
+        data = JSON.parse(data)
 
-      // For plugin data
-      data = mid["$"](data, username, username === this.private.username)
-      if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
-      Object.assign(this.public[username][plugin], data)
+        // For plugin data
+        const isSelf = this.private.username
+        data = mid[plugin](data, username, isSelf) // Plugin middleware
+        data = mid["$"](data, username, isSelf) // Root $ middleware
+
+        if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
+        if (this.public[username][plugin] === undefined) return this.$set(this.public[username], plugin, data)
+
+        const merged = { ...this.public[username][plugin], ...data }
+        this.$set(this.public[username], plugin, merged)
+      } catch (e) {
+        console.log("Invalid message", e) // Ignore faulty messages
+      }
     },
     wsSend(plugin, data) {
       if (!this.private.UUID) return
