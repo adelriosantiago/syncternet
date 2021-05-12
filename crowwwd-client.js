@@ -23,11 +23,23 @@ new Vue({
       UUID: "",
       username: "",
     },
+    // Middleware
+    middleware: { $: [] },
   },
   created() {},
   mounted() {
     this.startWSClient()
-    for (s of scripts) eval(s) // Run all plugins scripts
+
+    for (s of scripts) {
+      const obj = eval(s)
+
+      obj.init()
+      this.middleware["$"].push(obj.middleware["$"])
+      delete obj.middleware["$"]
+      Object.assign(this.middleware, obj.middleware)
+    }
+
+    for (init of this.middleware["$"]) init()
   },
   computed: {
     execSpecialAction() {
@@ -59,42 +71,6 @@ new Vue({
       console.log(`WebSocket error: ${err}`)
     },
     onWSMessage(msg) {
-      // TODO: Move this middleware POC into frontendExports
-      const mid = {
-        $: (data, username, isSelf) => {
-          return data
-        },
-        party: (data, username, isSelf) => {
-          let rect
-
-          try {
-            rect = xpath(data.xpath).getBoundingClientRect()
-          } catch (e) {
-            rect = { x: 0, y: 0 }
-          }
-
-          data.pos = {
-            x: Math.round(rect.x + document.documentElement.scrollLeft),
-            y: Math.round(rect.y + document.documentElement.scrollTop),
-          }
-
-          if (data.pos.y > scrollY + innerHeight) {
-            data.wayOut = "DOWN"
-            data.pos.y = scrollY + innerHeight - 40
-          } else if (data.pos.y < scrollY) {
-            data.wayOut = "UP"
-            data.pos.y = scrollY
-          } else {
-            data.wayOut = undefined
-          }
-
-          return data // TODO: Move to right place
-        },
-        shout: (data, username, isSelf) => {
-          return data
-        },
-      }
-
       try {
         let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
         if (!username) return
@@ -103,8 +79,8 @@ new Vue({
 
         // For plugin data
         const isSelf = this.private.username
-        data = mid[plugin](data, username, isSelf) // Plugin middleware
-        data = mid["$"](data, username, isSelf) // Root $ middleware
+        data = this.middleware[plugin](data, username, isSelf) // Plugin middleware
+        for (init of this.middleware["$"]) data = init(data, username, isSelf) // Root $ middleware
 
         if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
         if (this.public[username][plugin] === undefined) return this.$set(this.public[username], plugin, data)
