@@ -68,8 +68,7 @@ new Vue({
         if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data })
         if (this.public[username][plugin] === undefined) return this.$set(this.public[username], plugin, data)
 
-        const merged = { ...this.public[username][plugin], ...data }
-        this.$set(this.public[username], plugin, merged)
+        this.$set(this.public[username], plugin, data)
       } catch (e) {
         console.log("Invalid message", e) // Ignore faulty messages
       }
