@@ -83,10 +83,13 @@ new Vue({
       }
     },
     sync(plugin, replace) {
-      if (!plugin) throw "Not yet implemented" // TODO
-      this.wsSend(plugin, this.self[plugin])
+      if (!plugin) {
+        Object.keys(plugins).forEach((p) => this.sync(p))
+        return
+      }
+      this.send(plugin, this.self[plugin])
     },
-    wsSend(plugin, data) {
+    send(plugin, data) {
       if (!this.private.UUID) return
       window.CROWWWD.socket.send(this.private.UUID + "|" + plugin + "|" + JSON.stringify(data))
     },

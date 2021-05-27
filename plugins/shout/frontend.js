@@ -1,7 +1,5 @@
 new Object({
   init: () => {
-    this.shoutText = {}
-
     window.addEventListener("keypress", (e) => {
       e = e || window.event
       const el = e.target || el.srcElement
@@ -9,12 +7,12 @@ new Object({
       if (["TEXTAREA", "INPUT"].includes(el.tagName)) return // Bailout when we do want to write
 
       const timestamp = new Date().getTime()
-      this.shoutText[timestamp] = e.key
-      this.wsSend("shout", this.shoutText)
+      this.self.shout[timestamp] = e.key
+      this.sync()
 
       setTimeout(() => {
-        delete this.shoutText[timestamp]
-        this.wsSend("shout", this.shoutText)
+        delete this.self.shout[timestamp]
+        this.sync("shout")
       }, 5000)
     })
   },
