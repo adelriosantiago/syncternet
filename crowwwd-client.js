@@ -58,7 +58,7 @@ new Vue({
 
         // For plugin data
         data = this.middleware[plugin](data, username, this.auth.username) // Plugin middleware
-        for (init of this.middleware["$"]) data = init(data, username, this.auth.username) // Root $ middleware
+        for (rootMiddleware of this.middleware["$"]) data = rootMiddleware(data, username, this.auth.username) // Root $ middleware
 
         if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data }) // When a new user connects and it still doesn't exist in our public
 
@@ -73,6 +73,7 @@ new Vue({
 
         // Create plugin data placeholder
         this.$set(this.public[this.auth.username], p[0], {})
+        this.$set(this.private, p[0], obj.private)
 
         // Populate middleware
         this.middleware["$"].push(obj.middleware["$"])
@@ -93,6 +94,9 @@ new Vue({
     send(plugin, data) {
       if (!this.auth.UUID) return
       window.CROWWWD.socket.send(this.auth.UUID + "|" + plugin + "|" + JSON.stringify(data))
+    },
+    raw(a, b, c) {
+      window.CROWWWD.socket.send(a + "|" + b + "|" + c)
     },
   },
 })

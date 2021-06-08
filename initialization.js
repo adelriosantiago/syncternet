@@ -1,5 +1,5 @@
-// -> Rock
-// - Plastic
+// - Rock
+// -> Plastic
 // - Paper
 
 const ReconnectingWebSocket = require("reconnecting-websocket")

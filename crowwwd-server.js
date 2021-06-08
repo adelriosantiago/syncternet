@@ -30,12 +30,12 @@ let users = {}
 let public = {}
 let private = {}
 
-const specialActions = ["@specialActionA"]
 const execSpecialAction = {
   "@specialAction": (socket, data) => {
     console.log("@specialAction")
   },
 }
+const specialActions = Object.keys(execSpecialAction)
 
 const send = (socket, username, plugin, data) => {
   if (socket.readyState === WS_OPEN) socket.send(username + "|" + plugin + "|" + data)
