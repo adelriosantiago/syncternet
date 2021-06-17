@@ -23,7 +23,14 @@ const run = () => {
     $("body").append("<div id='crowwwd'></div>")
 
     for (const p of Object.entries(frontendExport.plugins)) {
-      $("div#crowwwd").append(`<div v-for="P in public">${p[1].html}</div>`)
+      // TODO: Move to a variable the next part
+      $("div#crowwwd").append(`
+        <div style="position: fixed; top: 30px; left: 0px">
+          <p>Username: <input v-model="private.party.newUsername" /></p>
+          <button @click="private.party.setUsername">Set</button>
+          public: {{public}}
+        </div>
+        <div v-for="(P, username) in public">${p[1].html}</div>`)
       scripts[p[0]] = p[1].script
     }
   }
@@ -34,10 +41,11 @@ const run = () => {
 const wsFunctions = {
   startWSClient() {
     // Check for previous auth data
-    const crId = window.localStorage.getItem("crId") || ""
+    const UUID = window.localStorage.getItem("crowwwd:UUID") || ""
+    const username = window.localStorage.getItem("crowwwd:username") || ""
 
     // Init socket connection
-    window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/crId=${crId}`)
+    window.CROWWWD.socket = new ReconnectingWebSocket(`ws://${window.location.host}/?UUID=${UUID}&username=${username}`)
     window.CROWWWD.socket.onopen = () => this.onWSOpen
     window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
     window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)

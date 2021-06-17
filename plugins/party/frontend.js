@@ -1,6 +1,13 @@
 new Object({
   private: {
-    newUsername: "",
+    newUsername: "newusername",
+    setUsername: () => {
+      this.raw(
+        "@changeUsername",
+        "",
+        JSON.stringify({ newUsername: this.private.party.newUsername, UUID: this.auth.UUID })
+      )
+    },
   },
   init: () => {
     this.send("party", {

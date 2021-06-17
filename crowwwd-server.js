@@ -31,8 +31,10 @@ let public = {}
 let private = {}
 
 const execSpecialAction = {
-  "@specialAction": (socket, data) => {
-    console.log("@specialAction")
+  "@changeUsername": (socket, data) => {
+    data = JSON.parse(data)
+    users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
+    send(socket, "@keys", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
   },
 }
 const specialActions = Object.keys(execSpecialAction)
@@ -61,23 +63,20 @@ const buildSync = (username, plugin) => {
 
 const init = (server) => {
   wsServer = new ws.Server({ server })
-  wsServer.on(WS_CONNECTION, async (socket) => {
-    console.log("New client connected")
+  wsServer.on(WS_CONNECTION, async (socket, req) => {
+    let [, UUID, username] = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
 
     // Create new session or continue an old one
-    const crId = "" // TODO: Obtain from URL
-    if (crId === "") {
-      // TODO: Address the issue when there is crId but id doesn't match
-      const newUUID = uuid.v4()
-      const newUsername = haikunator.haikunate()
 
-      users[newUUID] = newUsername
-
-      send(socket, "@keys", "", JSON.stringify({ UUID: newUUID, username: newUsername }))
-
-      // Send existing public data
-      sendAllToClient(socket)
+    if (!UUID || !username || !(users[UUID] === username)) {
+      // Non authenticated user, generate keys
+      UUID = uuid.v4()
+      username = haikunator.haikunate()
+      users[UUID] = username
     }
+
+    send(socket, "@keys", "", JSON.stringify({ UUID, username }))
+    sendAllToClient(socket) // Send all existing public data at the beginning
 
     socket.on(WS_MESSAGE, (msg) => {
       let [, UUID, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1

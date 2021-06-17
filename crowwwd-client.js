@@ -19,9 +19,9 @@ new Vue({
       UUID: "",
       username: "",
     },
-    // Realtime data, every user has a copy of this with the same contents
+    // Realtime data, this object contains all user's public information
     public: {},
-    // Local data, every user has it own data for each plugin
+    // Local data, every user has it own data for each plugin. This object contains only this user's information
     private: {},
     // Middleware
     middleware: { $: [] },
@@ -41,7 +41,8 @@ new Vue({
           this.auth.UUID = data.UUID
           this.auth.username = data.username
           this.$set(this.public, data.username, {})
-          window.localStorage.setItem("crId", data.UUID)
+          window.localStorage.setItem("crowwwd:UUID", data.UUID)
+          window.localStorage.setItem("crowwwd:username", data.username)
           this.onKeysReceived()
         },
       }
