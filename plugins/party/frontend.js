@@ -17,7 +17,7 @@ new Object({
       pic: "https://via.placeholder.com/150", // TODO: Improve so that it is not sent everytime
     })
 
-    document.onmouseover = (e) => {
+    document.addEventListener("mouseover", (e) => {
       try {
         e = e || window.event
         const el = e.target || el.srcElement
@@ -36,7 +36,7 @@ new Object({
       } catch (e) {
         console.log("Party error", e) // Ignore faulty messages
       }
-    }
+    })
   },
   middleware: {
     $: (data, username, isSelf) => {
