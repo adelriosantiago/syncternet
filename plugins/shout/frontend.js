@@ -20,13 +20,19 @@ new Object({
 
       if (["TEXTAREA", "INPUT"].includes(el.tagName)) return // Bailout when we do want to write
 
+      const attachedToElement = currentElement
       const timestamp = new Date().getTime()
+
       if (!this.self.shout.messages[currentElement]) this.self.shout.messages[currentElement] = { txt: {}, pos: {} }
       this.self.shout.messages[currentElement].txt[timestamp] = e.key
       this.sync("shout")
 
       setTimeout(() => {
-        delete this.self.shout[timestamp]
+        delete this.self.shout.messages[attachedToElement].txt[timestamp]
+
+        if (Object.values(this.self.shout.messages[attachedToElement].txt).length === 0) {
+          delete this.self.shout.messages[attachedToElement]
+        }
         this.sync("shout")
       }, 5000)
     })

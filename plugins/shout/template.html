@@ -1,7 +1,7 @@
 <template>
   <div v-for="path in Object.keys(P.shout.messages)">
     <div
-      class="absolute z-50 transition-all"
+      class="absolute z-50"
       style="pointer-events: none"
       :style="{'left': P.shout.messages[path].pos.x + 'px', 'top': P.shout.messages[path].pos.y + 'px' }"
     >
@@ -10,7 +10,7 @@
         class="text-sm text-white"
         style="position: relative; background-color: rgba(0, 0, 0, 0.5); left: 4px; top: -10px"
       >
-        {{Object.values(P.shout.messages[path].txt).join('')}}
+        {{username}}:{{Object.values(P.shout.messages[path].txt).join('')}}
       </span>
     </div>
   </div>
