@@ -15,6 +15,12 @@ const plugins = initialization.run(window)
 new Vue({
   el: "div#crowwwd",
   data: {
+    settings: {
+      menu: {
+        open: false,
+        newUsername: "",
+      },
+    },
     auth: {
       UUID: "",
       username: "",
@@ -98,6 +104,14 @@ new Vue({
     },
     raw(a, b, c) {
       window.CROWWWD.socket.send(a + "|" + b + "|" + c)
+    },
+    setUsername() {
+      if (!this.settings.menu.newUsername) return // TODO: Show an error message?
+      this.raw(
+        "@changeUsername",
+        "",
+        JSON.stringify({ newUsername: this.settings.menu.newUsername, UUID: this.auth.UUID })
+      )
     },
   },
 })

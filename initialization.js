@@ -6,8 +6,6 @@ const ReconnectingWebSocket = require("reconnecting-websocket")
 const frontendExport = require("./exports/frontendExport.js")
 
 const run = () => {
-  let scripts = {}
-
   CROWWWD = {
     socket: undefined,
     ONLINE: 1,
@@ -22,19 +20,27 @@ const run = () => {
   if (!$("div#crowwwd").length) {
     $("body").append("<div id='crowwwd'></div>")
 
-    for (const p of Object.entries(frontendExport.plugins)) {
-      // TODO: Move to a variable the next part
-      $("div#crowwwd").append(`
-        <div style="position: fixed; bottom: 10px; left: 0px; padding: 10px;">
-          <span><input placeholder="Set new username" v-model="private.party.newUsername" /></span>
-          <i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="private.party.setUsername"></i>
-        </div>
-        <div v-for="(P, username) in public">${p[1].html}</div>`)
-      scripts[p[0]] = p[1].script
-    }
-  }
+    // Append name change menu
+    $("div#crowwwd").append(`
+      <div class="fixed bottom-20 left-0">
+        <span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span>
+        <i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i>
+      </div>
+    `)
 
-  return scripts
+    // Append plugins
+    $("div#crowwwd").append(`
+      <div v-for="(P, username) in public">
+        ${Object.values(frontendExport.plugins)
+          .map((p) => p.html)
+          .join("")}
+      </div>
+    `)
+  }
+  return Object.entries(frontendExport.plugins).reduce((a, c) => {
+    a[c[0]] = c[1].script
+    return a
+  }, {})
 }
 
 const wsFunctions = {

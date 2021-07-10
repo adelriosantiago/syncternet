@@ -1,15 +1,5 @@
 new Object({
-  private: {
-    newUsername: "",
-    setUsername: () => {
-      if (!this.private.party.newUsername) return // TODO: Show an error message?
-      this.raw(
-        "@changeUsername",
-        "",
-        JSON.stringify({ newUsername: this.private.party.newUsername, UUID: this.auth.UUID })
-      )
-    },
-  },
+  private: {},
   init: () => {
     this.send("party", {
       xpath: "/html/body",
