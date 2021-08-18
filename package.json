@@ -29,6 +29,7 @@
     "cheerio": "^1.0.0-rc.5",
     "cssnano": "^4.1.10",
     "haikunator": "^2.1.2",
+    "listdirs": "^3.1.1",
     "lodash.topath": "^4.5.2",
     "mustache": "^4.1.0",
     "nodemon": "^2.0.4",
