@@ -1,7 +1,5 @@
 const fs = require("fs")
-
 const tailwindScoped = fs.readFileSync("./vendor/tailwind.min.css", { encoding: "utf8", flag: "r" })
-
 const listdirs = require("listdirs")
 
 // TODO: Use async
@@ -10,7 +8,7 @@ listdirs("./plugins", function callback(err, plugins) {
     console.log(err) // handle errors in your preferred way.
   } else {
     plugins.shift()
-    plugins = plugins.map((f) => f.match(/\w+$/g)[0])
+    plugins = plugins.map((f) => f.match(/\w+$/g)[0]) // TODO: Simplify
 
     let frontendExport = {
       style: tailwindScoped,
