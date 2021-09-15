@@ -2,6 +2,7 @@
 // -> Plastic
 // - Paper
 
+const WebSocketServer = require("ws").Server
 const fs = require("fs")
 const ws = require("ws")
 const _pick = require("lodash.pick")
@@ -61,8 +62,8 @@ const buildSync = (username, plugin) => {
   }
 }
 
-const init = (server) => {
-  wsServer = new ws.Server({ server })
+const init = () => {
+  wsServer = new WebSocketServer({ port: 7777 })
   wsServer.on(WS_CONNECTION, async (socket, req) => {
     let [, UUID, username] = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
 
