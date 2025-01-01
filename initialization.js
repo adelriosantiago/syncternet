@@ -1,9 +1,5 @@
-// - Rock
-// -> Plastic
-// - Paper
-
 const ReconnectingWebSocket = require("reconnecting-websocket")
-const frontendExport = require("./exports/frontendExport.js")
+const frontendExport = require("./exports/syncternet-plugins.js")
 
 const run = () => {
   CROWWWD = {
@@ -56,10 +52,10 @@ const wsFunctions = {
     window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
   },
   onWSOpen() {
-    console.log("WebSocket open")
+    console.info("Syncternet - WS Open")
   },
-  onWSError() {
-    console.log(`WebSocket error: ${err}`)
+  onWSError(err) {
+    console.info("Syncternet - WS Error", err)
   },
 }
 

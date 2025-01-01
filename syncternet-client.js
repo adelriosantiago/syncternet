@@ -1,10 +1,10 @@
 // Syncternet client
 
-const Vue = require("./vendor/vue.min.js")
-const xpath = require("./vendor/xpath-micro.js")
-const _get = require("lodash.get")
-const _set = require("lodash.set")
-const $ = require("./vendor/cash.min.js")
+const Vue = require("./utils/vue.min.js")
+//const xpath = require("./utils/xpath-micro.js")
+//const _get = require("lodash.get")
+//const _set = require("lodash.set")
+//const $ = require("./utils/cash.min.js")
 const initialization = require("./initialization.js")
 
 const plugins = initialization.run(window)
