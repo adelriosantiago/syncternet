@@ -7,7 +7,7 @@
   "main": "export.js",
   "scripts": {
     "build": "run-s build:plugins build:client",
-    "build:client": "browserify ./syncternet-client.js -o ./static/dist/syncternet-client.bundle.js",
+    "build:client": "browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
     "build:plugins": "node ./scripts/export-plugins.js",
     "build:style": "postcss tailwind.source.css -o builds/tailwind.min.css && node ./scripts/export-style.js"
   },
