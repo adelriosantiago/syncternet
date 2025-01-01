@@ -1,7 +1,3 @@
-// - Rock
-// -> Plastic
-// - Paper
-
 const WebSocketServer = require("ws").Server
 const fs = require("fs")
 const ws = require("ws")
