@@ -1,10 +1,9 @@
 {
-  "name": "boydog-noot",
-  "version": "0.0.0",
-  "description": "boydog-noot",
-  "main": "server.js",
+  "name": "syncternet",
+  "version": "1.0.0",
+  "description": "Syncternet NPM package for real-time collaborative web applications.",
+  "main": "export.js",
   "scripts": {
-    "start": "node ./server.js",
     "build": "browserify ./crowwwd-client.js -o ./static/dist/crowwwd-client.bundle.js",
     "build:tailwind": "postcss tailwind.source.css -o vendor/tailwind.min.css",
     "build:frontend": "node ./plugins/buildFrontend.js",

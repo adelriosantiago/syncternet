@@ -1,2 +1,3 @@
 const crowwwdServer = require("./crowwwd-server.js")
-crowwwdServer.init()
+
+module.exports = crowwwdServer
