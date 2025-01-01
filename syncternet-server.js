@@ -58,7 +58,18 @@ const buildSync = (username, plugin) => {
   }
 }
 
-const init = () => {
+const init = (app) => {
+  // Register utility routes
+  app.get("/syncternet/stats", (req, res) => {
+    return res.json({
+      status: "OK",
+      users: Object.keys(users).length,
+      public: Object.keys(public).length,
+      private: Object.keys(private).length,
+    })
+  })
+
+  // Start websocket server
   wsServer = new WebSocketServer({ port: 7777 })
   wsServer.on(WS_CONNECTION, async (socket, req) => {
     let [, UUID, username] = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
@@ -66,7 +77,7 @@ const init = () => {
     // Create new session or continue an old one
 
     if (!UUID || !username || !(users[UUID] === username)) {
-      // Non authenticated user, generate keys
+      // Non authenticated user, generate name and add to users
       UUID = uuid.v4()
       username = haikunator.haikunate()
       users[UUID] = username
