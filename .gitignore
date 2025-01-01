@@ -1,5 +1,6 @@
 exports/*
 builds/*
+static/dist/*
 
 # Logs
 logs
