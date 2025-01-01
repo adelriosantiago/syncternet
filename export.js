@@ -1,3 +1,3 @@
-const crowwwdServer = require("./crowwwd-server.js")
+const syncternetServer = require("./syncternet-server.js")
 
-module.exports = crowwwdServer
+module.exports = syncternetServer
