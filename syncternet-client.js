@@ -1,6 +1,4 @@
-// - Rock
-// -> Plastic
-// - Paper
+// Syncternet client
 
 const Vue = require("./vendor/vue.min.js")
 const xpath = require("./vendor/xpath-micro.js")
