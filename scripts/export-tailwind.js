@@ -1,6 +1,6 @@
 // Re-builds the CSS-scoped version of Tailwind that plugins use
 
 const fs = require("fs")
-const scopedTailwind = fs.readFileSync("./vendor/tailwind.min.css", { encoding: "utf8", flag: "r" })
+const scopedTailwind = fs.readFileSync("./builds/tailwind.min.css", { encoding: "utf8", flag: "r" })
 
-fs.writeFileSync("./exports/syncternet-tailwind.js", `module.exports = ${JSON.stringify(scopedTailwind)}`)
+fs.writeFileSync("./exports/syncternet-style.js", `module.exports = ${JSON.stringify(scopedTailwind)}`)
