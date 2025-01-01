@@ -1,0 +1,1 @@
+This folder includes GIT-tracked third party utils used *syncternet*.
