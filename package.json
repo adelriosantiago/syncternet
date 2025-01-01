@@ -4,9 +4,9 @@
   "description": "Syncternet NPM package for real-time collaborative web applications.",
   "main": "export.js",
   "scripts": {
-    "build": "browserify ./crowwwd-client.js -o ./static/dist/crowwwd-client.bundle.js",
-    "build:tailwind": "postcss tailwind.source.css -o vendor/tailwind.min.css",
-    "build:frontend": "node ./plugins/buildFrontend.js",
+    "build:client": "browserify ./syncternet-client.js -o ./static/dist/syncternet-client.bundle.js",
+    "build:plugins": "node ./scripts/export-plugins.js",
+    "build:style": "postcss tailwind.source.css -o builds/tailwind.min.css && node ./scripts/export-style.js",
     "serve": "run-s build:frontend build start",
     "dev": "nodemon --exec \"npm run serve\""
   },
