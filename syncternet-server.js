@@ -58,7 +58,10 @@ const buildSync = (username, plugin) => {
   }
 }
 
-const init = (app) => {
+const init = (server) => {
+  // Get `app` from server
+  const app = server.listeners("request")[0]
+
   // Register utility routes
   app.get("/syncternet/stats", (req, res) => {
     return res.json({
@@ -69,8 +72,12 @@ const init = (app) => {
     })
   })
 
+  app.get("/syncternet/client", (req, res) => {
+    return res.sendFile(__dirname + "/exports/syncternet-client.js")
+  })
+
   // Start websocket server
-  wsServer = new WebSocketServer({ port: 7777 })
+  wsServer = new WebSocketServer({ server })
   wsServer.on(WS_CONNECTION, async (socket, req) => {
     let [, UUID, username] = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
 
