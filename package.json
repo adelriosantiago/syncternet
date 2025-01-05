@@ -6,10 +6,8 @@
   "license": "MIT",
   "main": "export.js",
   "scripts": {
-    "build": "run-s build:plugins build:client",
-    "build:client": "browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
-    "build:plugins": "node ./scripts/export-plugins.js",
-    "build:style": "postcss tailwind.source.css -o builds/tailwind.min.css && node ./scripts/export-style.js"
+    "build": "run-s build:style",
+    "build:style": "postcss tailwind.source.css -o builds/tailwind.min.css"
   },
   "dependencies": {
     "body-parser": "^1.19.0",

@@ -1,7 +1,7 @@
 // Syncternet client
 
 const Vue = require("./utils/vue.min.js")
-//const xpath = require("./utils/xpath-micro.js")
+const xpath = require("./utils/xpath-micro.js")
 //const _get = require("lodash.get")
 //const _set = require("lodash.set")
 //const $ = require("./utils/cash.min.js")

@@ -1,5 +1,7 @@
 const ReconnectingWebSocket = require("reconnecting-websocket")
-const frontendExport = require("./exports/syncternet-plugins.js")
+
+const style = fs.readFileSync("./builds/tailwind.min.css", { encoding: "utf8", flag: "r" })
+const plugins = require("./exports/syncternet-plugins.js")
 
 const run = () => {
   CROWWWD = {
@@ -12,7 +14,7 @@ const run = () => {
   }
 
   // Append style and plugin templates
-  if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${frontendExport.style}</style>`) // Append crowwwd style
+  if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${style}</style>`) // Append crowwwd style
   if (!$("div#crowwwd").length) {
     $("body").append("<div id='crowwwd'></div>")
 
@@ -27,13 +29,13 @@ const run = () => {
     // Append plugins
     $("div#crowwwd").append(`
       <div v-for="(P, username) in public">
-        ${Object.values(frontendExport.plugins)
+        ${Object.values(plugins)
           .map((p) => p.html)
           .join("")}
       </div>
     `)
   }
-  return Object.entries(frontendExport.plugins).reduce((a, c) => {
+  return Object.entries(plugins).reduce((a, c) => {
     a[c[0]] = c[1].script
     return a
   }, {})
