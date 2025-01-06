@@ -14,8 +14,6 @@ const haikunator = new (require("haikunator"))({
   },
 })
 
-//const backendExport = require("./exports/backendExport.js")
-
 // Load plugins
 const pluginsFolder = path.join(__dirname, "plugins")
 let plugins = fs
