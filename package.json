@@ -6,7 +6,8 @@
   "license": "MIT",
   "main": "export.js",
   "scripts": {
-    "build:style": "postcss tailwind.source.css -o builds/tailwind.min.css"
+    "build:client": "node ./plugins/generate-json.js && browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
+    "build:style": "postcss ./style/tailwind.source.css -o ./style/style.min.css && node ./style/generate-json.js"
   },
   "dependencies": {
     "body-parser": "^1.19.0",
