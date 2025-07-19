@@ -14,9 +14,10 @@ const haikunator = new (require("haikunator"))({
 
 //const plugins = require("./plugins/export-plugins.js")
 //const plugins = require("./plugins/json-plugins.json")
-const backendExport = require("./exports/backendExport.js")
 
-console.info("Syncternet - Plugins loaded>>>>>>>>>:", Object.keys(backendExport))
+// NOTE: Backend is temporarily disabled
+//const backendExport = require("./exports/backendExport.js")
+//console.info("Syncternet - Plugins loaded>>>>>>>>>:", Object.keys(backendExport))
 
 const WS_MESSAGE = "message"
 const WS_CONNECTION = "connection"
@@ -106,16 +107,16 @@ const init = (server) => {
       if (public[UUID] === undefined) public[UUID] = {}
       if (private[UUID] === undefined) private[UUID] = {}
 
-      // Process middleware
+      // Process backend middleware (temporarily disabled)
       //console.log(">>>", plugins[plugin].middleware)
-      data = backendExport[plugin].middleware["$"](
+      /*data = backendExport[plugin].middleware["$"](
         data,
         buildSync(users[UUID], plugin),
         UUID,
         private[UUID],
         public[UUID]
       )
-      Object.assign(public[UUID], { [plugin]: data })
+      Object.assign(public[UUID], { [plugin]: data })*/
 
       broadcastData(users[UUID], plugin, JSON.stringify(data))
     })

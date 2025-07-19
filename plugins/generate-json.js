@@ -21,8 +21,6 @@ let plugins = fs
     return a
   }, {})
 
-console.log("OPOO", plugins)
-
 console.info("Syncternet - Plugins exported:", Object.keys(plugins))
 
 // Write file to exports

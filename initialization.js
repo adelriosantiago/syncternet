@@ -8,8 +8,6 @@ const plugins = require("./plugins/json-plugins.json")
 
 const $ = require("./utils/cash.min.js")
 
-console.log("S", $)
-
 const run = () => {
   CROWWWD = {
     socket: undefined,
