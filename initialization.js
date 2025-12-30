@@ -1,7 +1,12 @@
 const ReconnectingWebSocket = require("reconnecting-websocket")
 
-const style = fs.readFileSync("./builds/tailwind.min.css", { encoding: "utf8", flag: "r" })
-const plugins = require("./exports/syncternet-plugins.js")
+//const fs = require("fs")
+//const style = fs.readFileSync("./builds/tailwind.min.css", { encoding: "utf8", flag: "r" })
+const style = require("./style/json-style.json")
+//const plugins = require("./plugins/export-plugins.js")
+const plugins = require("./plugins/json-plugins.json")
+
+const $ = require("./utils/cash.min.js")
 
 const run = () => {
   CROWWWD = {
@@ -18,23 +23,19 @@ const run = () => {
   if (!$("div#crowwwd").length) {
     $("body").append("<div id='crowwwd'></div>")
 
-    // Append name change menu
-    $("div#crowwwd").append(`
-      <div class="fixed bottom-20 left-0">
-        <span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span>
-        <i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i>
-      </div>
-    `)
+    // Append name change menu // TODO: IMPORTANT, THIS SHOULD BE A TEMPLATE AND SHOULD NOT BE INTO MULTIPLE LINES
+    $("div#crowwwd").append(
+      `<div class="fixed bottom-20 left-0"><span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span><i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i></div>`
+    )
 
     // Append plugins
-    $("div#crowwwd").append(`
-      <div v-for="(P, username) in public">
-        ${Object.values(plugins)
-          .map((p) => p.html)
-          .join("")}
-      </div>
-    `)
+    const pluginContent = Object.values(plugins)
+      .map((p) => p.html)
+      .join("")
+
+    $("div#crowwwd").append(`<div v-for="(P, username) in public">${pluginContent}</div>`)
   }
+
   return Object.entries(plugins).reduce((a, c) => {
     a[c[0]] = c[1].script
     return a

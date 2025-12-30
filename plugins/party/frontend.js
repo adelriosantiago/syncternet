@@ -43,7 +43,7 @@ new Object({
 
         this.sync("party")
       } catch (e) {
-        console.log("Party error", e) // Ignore faulty messages
+        console.error("Party error", e) // Ignore faulty messages
       }
     })
 
@@ -52,7 +52,6 @@ new Object({
       const percent = Math.round((window.scrollY * 100) / max)
       this.self.party.percent = percent
       this.sync("party")
-      console.log(percent)
     })
   },
   middleware: {
@@ -82,10 +81,9 @@ new Object({
         }
       }
 
-      // TODO: No longer working it seems
       if (data.pos.y > scrollY + innerHeight) {
         data.wayOut = "DOWN"
-        data.pos.y = scrollY + innerHeight - 40
+        data.pos.y = scrollY + innerHeight - 70
       } else if (data.pos.y < scrollY) {
         data.wayOut = "UP"
         data.pos.y = scrollY

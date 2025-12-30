@@ -1,5 +1,4 @@
 const WebSocketServer = require("ws").Server
-const fs = require("fs")
 const ws = require("ws")
 const _pick = require("lodash.pick")
 const _get = require("lodash.get")
@@ -7,31 +6,18 @@ const _set = require("lodash.set")
 const _toPath = require("lodash.topath")
 const uuid = require("uuid")
 const uptill = require("uptill")
-const path = require("path")
 const haikunator = new (require("haikunator"))({
   defaults: {
     tokenLength: 6,
   },
 })
 
-// Load plugins
-const pluginsFolder = path.join(__dirname, "plugins")
-let plugins = fs
-  .readdirSync(pluginsFolder)
-  .map((p) => ({
-    [p]: {
-      // TODO: Standarize names, template -> html, frontend -> script, etc
-      html: fs.readFileSync(path.join(pluginsFolder, p, "template.html"), "utf8"),
-      middleware: require(path.join(pluginsFolder, p, "backend.js")),
-      script: fs.readFileSync(path.join(pluginsFolder, p, "frontend.js"), "utf8"),
-    },
-  }))
-  .reduce((a, c) => {
-    a[Object.keys(c)[0]] = Object.values(c)[0]
-    return a
-  }, {})
+//const plugins = require("./plugins/export-plugins.js")
+//const plugins = require("./plugins/json-plugins.json")
 
-console.info("Syncternet - Plugins loaded:", Object.keys(plugins))
+// NOTE: Backend is temporarily disabled
+//const backendExport = require("./exports/backendExport.js")
+//console.info("Syncternet - Plugins loaded>>>>>>>>>:", Object.keys(backendExport))
 
 const WS_MESSAGE = "message"
 const WS_CONNECTION = "connection"
@@ -121,9 +107,16 @@ const init = (server) => {
       if (public[UUID] === undefined) public[UUID] = {}
       if (private[UUID] === undefined) private[UUID] = {}
 
-      // Process middleware
-      data = plugins[plugin].middleware["$"](data, buildSync(users[UUID], plugin), UUID, private[UUID], public[UUID])
-      Object.assign(public[UUID], { [plugin]: data })
+      // Process backend middleware (temporarily disabled)
+      //console.log(">>>", plugins[plugin].middleware)
+      /*data = backendExport[plugin].middleware["$"](
+        data,
+        buildSync(users[UUID], plugin),
+        UUID,
+        private[UUID],
+        public[UUID]
+      )
+      Object.assign(public[UUID], { [plugin]: data })*/
 
       broadcastData(users[UUID], plugin, JSON.stringify(data))
     })
