@@ -6,7 +6,7 @@ const fs = require("fs")
 const path = require("path")
 
 const pluginsFolder = path.join(__dirname, "..", "plugins")
-let plugins = fs
+const plugins = fs
   .readdirSync(pluginsFolder)
   .filter((f) => fs.lstatSync(path.join(pluginsFolder, f)).isDirectory())
   .map((p) => ({
@@ -14,6 +14,7 @@ let plugins = fs
       // TODO: Standarize names, template -> html, frontend -> script, etc
       html: fs.readFileSync(path.join(pluginsFolder, p, "template.html"), "utf8"),
       script: fs.readFileSync(path.join(pluginsFolder, p, "frontend.js"), "utf8"),
+      back: fs.readFileSync(path.join(pluginsFolder, p, "backend.js"), "utf8"),
     },
   }))
   .reduce((a, c) => {
