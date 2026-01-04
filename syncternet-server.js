@@ -12,12 +12,10 @@ const haikunator = new (require("haikunator"))({
   },
 })
 
-//const plugins = require("./plugins/export-plugins.js")
-//const plugins = require("./plugins/json-plugins.json")
-
-// NOTE: Backend is temporarily disabled
-//const backendExport = require("./exports/backendExport.js")
-//console.info("Syncternet - Plugins loaded>>>>>>>>>:", Object.keys(backendExport))
+const rawPlugins = require("./plugins/json-plugins.json")
+const pluginBackends = Object.fromEntries(Object.entries(rawPlugins).map(([key, value]) => {
+  return [key, eval(value.back)] // TODO: Try safer alternative const fn = new Function("x", `"use strict"; return (${expr});`);
+}))
 
 const WS_MESSAGE = "message"
 const WS_CONNECTION = "connection"
@@ -63,7 +61,7 @@ const buildSync = (username, plugin) => {
 }
 
 const init = (server) => {
-  // Get `app` from server
+  // Get Express's app from server
   const app = server.listeners("request")[0]
 
   // Register utility routes
@@ -76,6 +74,7 @@ const init = (server) => {
     })
   })
 
+  // Register client route
   app.get("/syncternet/client", (req, res) => {
     return res.sendFile(__dirname + "/exports/syncternet-client.js")
   })
@@ -107,16 +106,15 @@ const init = (server) => {
       if (public[UUID] === undefined) public[UUID] = {}
       if (private[UUID] === undefined) private[UUID] = {}
 
-      // Process backend middleware (temporarily disabled)
-      //console.log(">>>", plugins[plugin].middleware)
-      /*data = backendExport[plugin].middleware["$"](
+      // Process plugin backend middleware
+      data = pluginBackends[plugin]["$"](
         data,
         buildSync(users[UUID], plugin),
         UUID,
         private[UUID],
         public[UUID]
       )
-      Object.assign(public[UUID], { [plugin]: data })*/
+      Object.assign(public[UUID], { [plugin]: data })
 
       broadcastData(users[UUID], plugin, JSON.stringify(data))
     })
