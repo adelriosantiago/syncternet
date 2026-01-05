@@ -96,8 +96,10 @@ const init = (server) => {
     send(socket, "@keys", "", JSON.stringify({ UUID, username }))
     sendAllToClient(socket) // Send all existing public data at the beginning
 
-    socket.on(WS_MESSAGE, (msg) => {
-      let [, UUID, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
+    socket.on(WS_MESSAGE, (msg, isBinary) => {
+      if (isBinary) return // Ignore binary messages
+      const msgStr = msg.toString('utf8')
+      let [, UUID, plugin, data] = msgStr.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
       if (!UUID) return
       if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, data) // Special functions
       data = JSON.parse(data)

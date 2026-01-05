@@ -10,29 +10,29 @@
     "build:style": "postcss ./style/tailwind.source.css -o ./style/style.min.css && node ./style/generate-json.js"
   },
   "dependencies": {
-    "body-parser": "^1.19.0",
-    "express": "^4.17.1",
+    "body-parser": "^2.2.1",
+    "express": "^5.2.1",
     "lodash.get": "^4.4.2",
     "lodash.pick": "^4.4.0",
     "lodash.set": "^4.3.2",
     "reconnecting-websocket": "^4.4.0",
     "uptill": "^1.0.1",
-    "ws": "^7.4.2"
+    "ws": "^8.18.3"
   },
   "devDependencies": {
-    "autoprefixer": "^10.2.4",
-    "browserify": "^17.0.0",
-    "cheerio": "^1.0.0-rc.5",
-    "cssnano": "^4.1.10",
+    "autoprefixer": "^10.4.23",
+    "browserify": "^17.0.1",
+    "cheerio": "^1.1.2",
+    "cssnano": "^7.1.2",
     "haikunator": "^2.1.2",
     "lodash.topath": "^4.5.2",
-    "mustache": "^4.1.0",
-    "nodemon": "^2.0.4",
-    "postcss": "^8.2.6",
-    "postcss-cli": "^8.3.1",
-    "tailwindcss": "^2.0.3",
-    "url": "^0.11.0",
-    "uuid": "^8.3.2",
-    "vue": "^2.6.12"
+    "mustache": "^4.2.0",
+    "nodemon": "^3.1.11",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
+    "tailwindcss": "^4.1.18",
+    "url": "^0.11.4",
+    "uuid": "^13.0.0",
+    "vue": "^3.5.26"
   }
 }
