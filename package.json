@@ -1,10 +1,13 @@
 {
   "name": "syncternet",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Syncternet NPM package for real-time collaborative web applications.",
   "author": "www.adelriosantiago.com",
   "license": "MIT",
   "main": "export.js",
+  "files": [
+    "exports/*"
+  ],
   "scripts": {
     "build:client": "node ./plugins/generate-json.js && browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
     "build:style": "postcss ./style/tailwind.source.css -o ./style/style.min.css && node ./style/generate-json.js"
