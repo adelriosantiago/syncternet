@@ -6,7 +6,8 @@
   "license": "MIT",
   "main": "export.js",
   "files": [
-    "exports/*"
+    "exports/*",
+    "syncternet-server.js"
   ],
   "scripts": {
     "build:client": "node ./plugins/generate-json.js && browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
