@@ -60,10 +60,7 @@ const buildSync = (username, plugin) => {
   }
 }
 
-const init = (server) => {
-  // Get Express's app from server
-  const app = server.listeners("request")[0]
-
+const init = (server, app) => {
   // Register utility routes
   app.get("/syncternet/stats", (req, res) => {
     return res.json({
