@@ -11,15 +11,6 @@ const xpath = require("./utils/xpath-micro.js")
 const $ = require("./utils/cash.min.js")
 const initialization = require("./initialization.js")
 
-console.log("before run") // CONTINUE HERE
-/*
-before run
-client:204 Uncaught SyntaxError: Failed to execute 'querySelectorAll' on 'Document': '
-      <div class="fixed bottom-20 left-0">
-        <span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span>
-
-IN CLIENT
-*/
 const plugins = initialization.run(window)
 console.log("plugins", plugins)
 
