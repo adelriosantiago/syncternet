@@ -2,8 +2,12 @@
 // Build plugins and store them into a JSON file so that it is browserify-able by the client.
 //
 
-const fs = require("fs")
-const path = require("path")
+import fs from "fs"
+import path from "path"
+
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const pluginsFolder = path.join(__dirname, "..", "plugins")
 const plugins = fs

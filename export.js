@@ -1,3 +1,3 @@
-const syncternetServer = require("./syncternet-server.js")
+import syncternetServer from "./syncternet-server.js"
 
-module.exports = syncternetServer
+export default syncternetServer

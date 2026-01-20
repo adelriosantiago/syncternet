@@ -1,18 +1,24 @@
-const WebSocketServer = require("ws").Server
-// const ws = require("ws")
-const _pick = require("lodash.pick")
-const _get = require("lodash.get")
-const _set = require("lodash.set")
-const _toPath = require("lodash.topath")
-const uuid = require("uuid")
-const uptill = require("uptill")
-const haikunator = new (require("haikunator"))({
+
+import { WebSocketServer } from "ws"
+import _pick from "lodash.pick"
+import _get from "lodash.get"
+import _set from "lodash.set"
+import _toPath from "lodash.topath"
+import * as uuid from "uuid"
+import uptill from "uptill"
+import Haikunator from "haikunator"
+import rawPlugins from "./plugins/json-plugins.json" with { type: "json" }
+
+const haikunator = new Haikunator({
   defaults: {
     tokenLength: 6,
   },
 })
 
-const rawPlugins = require("./plugins/json-plugins.json")
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
+const __dirname = dirname(fileURLToPath(import.meta.url))
+
 const pluginBackends = Object.fromEntries(Object.entries(rawPlugins).map(([key, value]) => {
   return [key, eval(value.back)] // TODO: Try safer alternative const fn = new Function("x", `"use strict"; return (${expr});`);
 }))
@@ -25,14 +31,14 @@ const WS_CLOSING = 2
 const WS_CLOSED = 3
 
 let wsServer = undefined
-let users = {}
-let public = {}
-let private = {}
+let _users = {}
+let _public = {}
+let _private = {}
 
 const execSpecialAction = {
   "@changeUsername": (socket, data) => {
     data = JSON.parse(data)
-    users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
+    _users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
     send(socket, "@keys", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
   },
 }
@@ -47,9 +53,9 @@ const broadcastData = (username, plugin, data) => {
 }
 
 const sendAllToClient = (socket) => {
-  Object.keys(public).forEach((UUID) => {
-    Object.keys(public[UUID]).forEach((plugin) => {
-      send(socket, users[UUID], plugin, JSON.stringify(public[UUID][plugin]))
+  Object.keys(_public).forEach((UUID) => {
+    Object.keys(_public[UUID]).forEach((plugin) => {
+      send(socket, _users[UUID], plugin, JSON.stringify(_public[UUID][plugin]))
     })
   })
 }
@@ -65,9 +71,9 @@ const init = (server, app) => {
   app.get("/syncternet/stats", (req, res) => {
     return res.json({
       status: "OK",
-      users: Object.keys(users).length,
-      public: Object.keys(public).length,
-      private: Object.keys(private).length,
+      users: Object.keys(_users).length,
+      public: Object.keys(_public).length,
+      private: Object.keys(_private).length,
     })
   })
 
@@ -83,11 +89,11 @@ const init = (server, app) => {
 
     // Create new session or continue an old one
 
-    if (!UUID || !username || !(users[UUID] === username)) {
+    if (!UUID || !username || !(_users[UUID] === username)) {
       // Non authenticated user, generate name and add to users
       UUID = uuid.v4()
       username = haikunator.haikunate()
-      users[UUID] = username
+      _users[UUID] = username
     }
 
     send(socket, "@keys", "", JSON.stringify({ UUID, username }))
@@ -102,26 +108,29 @@ const init = (server, app) => {
       data = JSON.parse(data)
 
       // For plugin data
-      if (public[UUID] === undefined) public[UUID] = {}
-      if (private[UUID] === undefined) private[UUID] = {}
+      if (_public[UUID] === undefined) _public[UUID] = {}
+      if (_private[UUID] === undefined) _private[UUID] = {}
 
       // Process plugin backend middleware
       data = pluginBackends[plugin]["$"](
         data,
-        buildSync(users[UUID], plugin),
+        buildSync(_users[UUID], plugin),
         UUID,
-        private[UUID],
-        public[UUID]
+        _private[UUID],
+        _public[UUID]
       )
-      Object.assign(public[UUID], { [plugin]: data })
+      Object.assign(_public[UUID], { [plugin]: data })
 
-      broadcastData(users[UUID], plugin, JSON.stringify(data))
+      broadcastData(_users[UUID], plugin, JSON.stringify(data))
     })
   })
 }
 
 const store = () => {
-  public, private, users
+  _public, _private, _users
 }
 
-module.exports = { init, store }
+export default {
+  init,
+  store,
+}

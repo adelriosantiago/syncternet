@@ -5,6 +5,7 @@
   "author": "www.adelriosantiago.com",
   "license": "MIT",
   "main": "export.js",
+  "type": "module",
   "files": [
     "exports/*",
     "syncternet-server.js",
