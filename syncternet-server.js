@@ -7,7 +7,9 @@ import _toPath from "lodash.topath"
 import * as uuid from "uuid"
 import uptill from "uptill"
 import Haikunator from "haikunator"
-import rawPlugins from "./plugins/json-plugins.json" with { type: "json" }
+
+import { readFile } from "fs/promises";
+const rawPlugins = JSON.parse(await readFile(new URL('./plugins/json-plugins.json', import.meta.url), 'utf-8'))
 
 const haikunator = new Haikunator({
   defaults: {
