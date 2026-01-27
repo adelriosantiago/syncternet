@@ -28,10 +28,8 @@ new Object({
 
     document.addEventListener("mouseover", (e) => {
       try {
-        e = e || window.event
-        const el = e.target || el.srcElement
+        const el = e.target || e.srcElement
 
-        const rect = el.getBoundingClientRect()
         this.self.party.xpath = xpath(el)
         this.self.party.status = window.CROWWWD.ONLINE
 
@@ -42,9 +40,7 @@ new Object({
         }, 5000)
 
         this.sync("party")
-      } catch (e) {
-        console.error("Party error", e) // Ignore faulty messages
-      }
+      } catch (e) { /* Ignore when we are not in the DOM */ }
     })
 
     document.addEventListener("scroll", (event) => {

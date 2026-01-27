@@ -1,40 +1,22 @@
 new Object({
   init: () => {
     this.self.shout.messages = {}
-
-    let currentElement
-
+    let currentElement = null
+ 
     document.addEventListener("mouseover", (e) => {
       try {
-        e = e || window.event
-        const el = e.target || el.srcElement
-        currentElement = xpath(el)
-      } catch (e) {
-        console.log("Shout error while creating anchor", e) // Ignore faulty messages
-      }
+        currentElement = xpath(e.target || e.srcElement)
+      } catch (e) { /* Ignore when we are not in the DOM */ }
     })
 
     window.addEventListener("keypress", (e) => {
-      e = e || window.event
-      const el = e.target || el.srcElement
+      if (!currentElement) return // Bailout when we don't have an element
+      if (["TEXTAREA", "INPUT"].includes(currentElement.tagName)) return // Bailout when we are typing in an input field
 
-      if (["TEXTAREA", "INPUT"].includes(el.tagName)) return // Bailout when we do want to write
-
-      const attachedToElement = currentElement
       const timestamp = new Date().getTime()
-
       if (!this.self.shout.messages[currentElement]) this.self.shout.messages[currentElement] = { txt: {}, pos: {} }
       this.self.shout.messages[currentElement].txt[timestamp] = e.key
       this.sync("shout")
-
-      setTimeout(() => {
-        delete this.self.shout.messages[attachedToElement].txt[timestamp]
-
-        if (Object.values(this.self.shout.messages[attachedToElement].txt).length === 0) {
-          delete this.self.shout.messages[attachedToElement]
-        }
-        this.sync("shout")
-      }, 5000)
     })
   },
   middleware: {

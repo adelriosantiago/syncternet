@@ -12,7 +12,7 @@ const $ = require("./utils/cash.min.js")
 const initialization = require("./initialization.js")
 
 const plugins = initialization.run(window)
-console.log("plugins", plugins)
+console.info("Syncternet Plugins Loaded:", Object.keys(plugins))
 
 // Initialize crowwwd engine
 new Vue({
@@ -63,7 +63,7 @@ new Vue({
       try {
         let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
         if (!username) return
-        if (window.CROWWWD.specialActions.includes(username)) return this.execSpecialAction[username](data)
+        if (window.CROWWWD.specialActions.includes(username)) return this.execSpecialAction[username](data) // TODO: Move to a better place, this should be a plugin that deals with usernames only
         data = JSON.parse(data)
 
         // For plugin data
