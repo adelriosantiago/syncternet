@@ -59,7 +59,7 @@ const wsFunctions = {
     console.info("Syncternet - WS Open")
   },
   onWSError(err) {
-    console.info("Syncternet - WS Error", err)
+    console.error("Syncternet - WS Error", err)
   },
 }
 
