@@ -5,14 +5,51 @@
 console.info("Syncternet Client Loaded")
 
 const Vue = require("./utils/vue.min.js")
+const ReconnectingWebSocket = require("reconnecting-websocket")
+
+const style = require("./style/json-style.json")
+const pluginsJson = require("./plugins/json-plugins.json")
 const xpath = require("./utils/xpath-micro.js")
 //const _get = require("lodash.get")
 //const _set = require("lodash.set")
 const $ = require("./utils/cash.min.js")
-const initialization = require("./initialization.js")
 
-const plugins = initialization.run(window)
-console.info("Syncternet Plugins Loaded:", Object.keys(plugins))
+const initialize = () => {
+  window.CROWWWD = {
+    socket: undefined,
+    ONLINE: 1,
+    AWAY: 0,
+    X_OFFSET: 15,
+    Y_OFFSET: 15,
+    specialActions: ["@keys", "@style", "@plugins"],
+  }
+
+  // Append style and plugin templates
+  if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${style}</style>`) // Append crowwwd style
+  if (!$("div#crowwwd").length) {
+    $("body").append("<div id='crowwwd'></div>")
+
+    // Append name change menu // TODO: IMPORTANT, THIS SHOULD BE A TEMPLATE AND SHOULD NOT BE INTO MULTIPLE LINES
+    $("div#crowwwd").append(
+      `<div class="fixed bottom-20 left-0"><span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span><i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i></div>`
+    )
+
+    // Append plugins
+    const pluginContent = Object.values(pluginsJson)
+      .map((p) => p.html)
+      .join("")
+
+    $("div#crowwwd").append(`<div v-for="(P, username) in public">${pluginContent}</div>`)
+  }
+
+  return Object.entries(pluginsJson).reduce((a, c) => {
+    a[c[0]] = c[1].script
+    return a
+  }, {})
+}
+
+const plugins = initialize()
+console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson))
 
 // Initialize crowwwd engine
 new Vue({
@@ -58,7 +95,26 @@ new Vue({
     },
   },
   methods: {
-    ...initialization.wsFunctions,
+    startWSClient() {
+      // Check for previous auth data
+      const UUID = window.localStorage.getItem("crowwwd:UUID") || ""
+      const username = window.localStorage.getItem("crowwwd:username") || ""
+
+      // Init socket connection
+      const protocol = location.protocol === "https:" ? "wss:" : "ws:"
+      window.CROWWWD.socket = new ReconnectingWebSocket(
+        `${protocol}//${window.location.host}/?UUID=${UUID}&username=${username}`
+      )
+      window.CROWWWD.socket.onopen = () => this.onWSOpen
+      window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
+      window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+    },
+    onWSOpen() {
+      console.info("Syncternet - WS Open")
+    },
+    onWSError(err) {
+      console.error("Syncternet - WS Error", err)
+    },
     onWSMessage(msg) {
       try {
         let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
