@@ -21,7 +21,7 @@ const initialize = () => {
     AWAY: 0,
     X_OFFSET: 15,
     Y_OFFSET: 15,
-    specialActions: ["@keys", "@style", "@plugins"],
+    specialActions: ["@uuid", "@style", "@plugins"],
   }
 
   // Append style and plugin templates
@@ -49,7 +49,7 @@ const initialize = () => {
 }
 
 const plugins = initialize()
-console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson))
+console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson), plugins)
 
 // Initialize crowwwd engine
 new Vue({
@@ -82,14 +82,14 @@ new Vue({
     },
     execSpecialAction() {
       return {
-        "@keys": (data) => {
+        "@uuid": (data) => {
           data = JSON.parse(data)
           this.auth.UUID = data.UUID
           this.auth.username = data.username
           this.$set(this.public, data.username, {})
           window.localStorage.setItem("crowwwd:UUID", data.UUID)
           window.localStorage.setItem("crowwwd:username", data.username)
-          this.onKeysReceived()
+          this.onUUIDReceived()
         },
       }
     },
@@ -133,7 +133,7 @@ new Vue({
         console.log("Invalid message", e) // Ignore faulty messages
       }
     },
-    onKeysReceived() {
+    onUUIDReceived() {
       for (p of Object.entries(plugins)) {
         const obj = eval(p[1])
 

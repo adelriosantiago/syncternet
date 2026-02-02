@@ -1,4 +1,3 @@
-
 import { WebSocketServer } from "ws"
 import _pick from "lodash.pick"
 import _get from "lodash.get"
@@ -8,8 +7,8 @@ import * as uuid from "uuid"
 import uptill from "uptill"
 import Haikunator from "haikunator"
 
-import { readFile } from "fs/promises";
-const rawPlugins = JSON.parse(await readFile(new URL('./plugins/json-plugins.json', import.meta.url), 'utf-8'))
+import { readFile } from "fs/promises"
+const rawPlugins = JSON.parse(await readFile(new URL("./plugins/json-plugins.json", import.meta.url), "utf-8"))
 
 const haikunator = new Haikunator({
   defaults: {
@@ -17,13 +16,15 @@ const haikunator = new Haikunator({
   },
 })
 
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
-const pluginBackends = Object.fromEntries(Object.entries(rawPlugins).map(([key, value]) => {
-  return [key, eval(value.back)] // TODO: Try safer alternative const fn = new Function("x", `"use strict"; return (${expr});`);
-}))
+const pluginBackends = Object.fromEntries(
+  Object.entries(rawPlugins).map(([key, value]) => {
+    return [key, eval(value.back)] // TODO: Try safer alternative const fn = new Function("x", `"use strict"; return (${expr});`);
+  })
+)
 
 const WS_MESSAGE = "message"
 const WS_CONNECTION = "connection"
@@ -41,7 +42,7 @@ const execSpecialAction = {
   "@changeUsername": (socket, data) => {
     data = JSON.parse(data)
     _users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
-    send(socket, "@keys", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
+    send(socket, "@uuid", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
   },
 }
 const specialActions = Object.keys(execSpecialAction)
@@ -98,12 +99,12 @@ const init = (server, app) => {
       _users[UUID] = username
     }
 
-    send(socket, "@keys", "", JSON.stringify({ UUID, username }))
+    send(socket, "@uuid", "", JSON.stringify({ UUID, username }))
     sendAllToClient(socket) // Send all existing public data at the beginning
 
     socket.on(WS_MESSAGE, (msg, isBinary) => {
       if (isBinary) return // Ignore binary messages
-      const msgStr = msg.toString('utf8')
+      const msgStr = msg.toString("utf8")
       let [, UUID, plugin, data] = msgStr.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
       if (!UUID) return
       if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, data) // Special functions
@@ -114,13 +115,7 @@ const init = (server, app) => {
       if (_private[UUID] === undefined) _private[UUID] = {}
 
       // Process plugin backend middleware
-      data = pluginBackends[plugin]["$"](
-        data,
-        buildSync(_users[UUID], plugin),
-        UUID,
-        _private[UUID],
-        _public[UUID]
-      )
+      data = pluginBackends[plugin]["$"](data, buildSync(_users[UUID], plugin), UUID, _private[UUID], _public[UUID])
       Object.assign(_public[UUID], { [plugin]: data })
 
       broadcastData(_users[UUID], plugin, JSON.stringify(data))
