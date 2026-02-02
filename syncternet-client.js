@@ -8,13 +8,15 @@ const Vue = require("./utils/vue.min.js")
 const ReconnectingWebSocket = require("reconnecting-websocket")
 
 const style = require("./style/json-style.json")
-const pluginsJson = require("./plugins/json-plugins.json")
 const xpath = require("./utils/xpath-micro.js")
 //const _get = require("lodash.get")
 //const _set = require("lodash.set")
 const $ = require("./utils/cash.min.js")
 
-const initialize = () => {
+const pluginsJson = require("./plugins/json-plugins.json")
+console.log({ pluginsJson })
+
+const initSyncternet = () => {
   window.CROWWWD = {
     socket: undefined,
     ONLINE: 1,
@@ -29,7 +31,7 @@ const initialize = () => {
   if (!$("div#crowwwd").length) {
     $("body").append("<div id='crowwwd'></div>")
 
-    // Append name change menu // TODO: IMPORTANT, THIS SHOULD BE A TEMPLATE AND SHOULD NOT BE INTO MULTIPLE LINES
+    // Append name change menu // TODO: IMPORTANT, THIS SHOULD BE A TEMPLATE (or a plugin) AND SHOULD NOT BE INTO MULTIPLE LINES
     $("div#crowwwd").append(
       `<div class="fixed bottom-20 left-0"><span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span><i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i></div>`
     )
@@ -41,15 +43,10 @@ const initialize = () => {
 
     $("div#crowwwd").append(`<div v-for="(P, username) in public">${pluginContent}</div>`)
   }
-
-  return Object.entries(pluginsJson).reduce((a, c) => {
-    a[c[0]] = c[1].script
-    return a
-  }, {})
 }
 
-const plugins = initialize()
-console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson), plugins)
+initSyncternet()
+console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson))
 
 // Initialize crowwwd engine
 new Vue({
@@ -134,8 +131,8 @@ new Vue({
       }
     },
     onUUIDReceived() {
-      for (p of Object.entries(plugins)) {
-        const obj = eval(p[1])
+      for (p of Object.entries(pluginsJson)) {
+        const obj = eval(p[1].script)
 
         // Create plugin data placeholder
         this.$set(this.public[this.auth.username], p[0], {})
@@ -152,7 +149,7 @@ new Vue({
     },
     sync(plugin, replace) {
       if (!plugin) {
-        Object.keys(plugins).forEach((p) => this.sync(p))
+        Object.keys(pluginsJson).forEach((p) => this.sync(p))
         return
       }
       this.send(plugin, this.self[plugin])

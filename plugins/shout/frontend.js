@@ -2,11 +2,13 @@ new Object({
   init: () => {
     this.self.shout.messages = {}
     let currentElement = null
- 
+
     document.addEventListener("mouseover", (e) => {
       try {
         currentElement = xpath(e.target || e.srcElement)
-      } catch (e) { /* Ignore when we are not in the DOM */ }
+      } catch (e) {
+        /* Ignore when we are not in the DOM */
+      }
     })
 
     window.addEventListener("keypress", (e) => {
@@ -18,6 +20,12 @@ new Object({
       this.self.shout.messages[currentElement].txt[timestamp] = e.key
       this.sync("shout")
     })
+  },
+  methods: {
+    // TODO: Implement plugins this way
+    onKeyPress: (e) => {
+      console.log("Key pressed:", e.key)
+    },
   },
   middleware: {
     $: (data, username, isSelf) => {
