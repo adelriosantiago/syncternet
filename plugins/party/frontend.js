@@ -18,11 +18,13 @@ new Object({
       return check
     }
 
+    console.log({ ttt: this })
+
     this.send("party", {
       xpath: "/html/body",
       percent: 0,
       isMobile: mobileCheck(),
-      status: window.CROWWWD.ONLINE,
+      status: this.crowwwd.ONLINE,
       pic: `/img/${Math.round(Math.random() * 9)}.jpg`, // TODO: Improve so that it is not sent everytime
     })
 
@@ -31,16 +33,18 @@ new Object({
         const el = e.target || e.srcElement
 
         this.self.party.xpath = xpath(el)
-        this.self.party.status = window.CROWWWD.ONLINE
+        this.self.party.status = this.crowwwd.ONLINE
 
         clearTimeout(this.awayTimeout)
         this.awayTimeout = setTimeout(() => {
-          this.self.party.status = window.CROWWWD.AWAY
+          this.self.party.status = this.crowwwd.AWAY
           this.sync("party")
         }, 5000)
 
         this.sync("party")
-      } catch (e) { /* Ignore when we are not in the DOM */ }
+      } catch (e) {
+        /* Ignore when we are not in the DOM */
+      }
     })
 
     document.addEventListener("scroll", (event) => {

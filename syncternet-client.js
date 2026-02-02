@@ -17,15 +17,6 @@ const pluginsJson = require("./plugins/json-plugins.json")
 console.log({ pluginsJson })
 
 const initSyncternet = () => {
-  window.CROWWWD = {
-    socket: undefined,
-    ONLINE: 1,
-    AWAY: 0,
-    X_OFFSET: 15,
-    Y_OFFSET: 15,
-    specialActions: ["@uuid", "@style", "@plugins"],
-  }
-
   // Append style and plugin templates
   if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${style}</style>`) // Append crowwwd style
   if (!$("div#crowwwd").length) {
@@ -36,12 +27,10 @@ const initSyncternet = () => {
       `<div class="fixed bottom-20 left-0"><span><input placeholder="Set new username" v-model="settings.menu.newUsername" /></span><i class="fas fa-save" style="position: relative; color: black; left: -25px; top: 1px;" @click="setUsername()"></i></div>`
     )
 
-    // Append plugins
-    const pluginContent = Object.values(pluginsJson)
+    $("div#crowwwd").append(`<div v-for="(P, username) in public">${Object.values(pluginsJson)
       .map((p) => p.html)
-      .join("")
-
-    $("div#crowwwd").append(`<div v-for="(P, username) in public">${pluginContent}</div>`)
+      .join("")}
+      </div>`)
   }
 }
 
@@ -52,6 +41,14 @@ console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson))
 new Vue({
   el: "div#crowwwd",
   data: {
+    crowwwd: {
+      socket: undefined,
+      ONLINE: 1,
+      AWAY: 0,
+      X_OFFSET: 15,
+      Y_OFFSET: 15,
+      specialActions: ["@uuid", "@style", "@plugins"],
+    },
     settings: {
       menu: {
         open: false,
@@ -99,12 +96,12 @@ new Vue({
 
       // Init socket connection
       const protocol = location.protocol === "https:" ? "wss:" : "ws:"
-      window.CROWWWD.socket = new ReconnectingWebSocket(
+      this.crowwwd.socket = new ReconnectingWebSocket(
         `${protocol}//${window.location.host}/?UUID=${UUID}&username=${username}`
       )
-      window.CROWWWD.socket.onopen = () => this.onWSOpen
-      window.CROWWWD.socket.onerror = (err) => this.onWSError(err)
-      window.CROWWWD.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+      this.crowwwd.socket.onopen = () => this.onWSOpen
+      this.crowwwd.socket.onerror = (err) => this.onWSError(err)
+      this.crowwwd.socket.onmessage = (msg) => this.onWSMessage(msg.data)
     },
     onWSOpen() {
       console.info("Syncternet - WS Open")
@@ -116,7 +113,7 @@ new Vue({
       try {
         let [, username, plugin, data] = msg.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
         if (!username) return
-        if (window.CROWWWD.specialActions.includes(username)) return this.execSpecialAction[username](data) // TODO: Move to a better place, this should be a plugin that deals with usernames only
+        if (this.crowwwd.specialActions.includes(username)) return this.execSpecialAction[username](data) // TODO: Move to a better place, this should be a plugin that deals with usernames only
         data = JSON.parse(data)
 
         // For plugin data
@@ -156,10 +153,10 @@ new Vue({
     },
     send(plugin, data) {
       if (!this.auth.UUID) return
-      window.CROWWWD.socket.send(this.auth.UUID + "|" + plugin + "|" + JSON.stringify(data))
+      this.crowwwd.socket.send(this.auth.UUID + "|" + plugin + "|" + JSON.stringify(data))
     },
     raw(a, b, c) {
-      window.CROWWWD.socket.send(a + "|" + b + "|" + c)
+      this.crowwwd.socket.send(a + "|" + b + "|" + c)
     },
     setUsername() {
       if (!this.settings.menu.newUsername) return // TODO: Show an error message?
