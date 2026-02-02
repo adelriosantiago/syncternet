@@ -12,11 +12,10 @@ const xpath = require("./utils/xpath-micro.js")
 //const _get = require("lodash.get")
 //const _set = require("lodash.set")
 const $ = require("./utils/cash.min.js")
-
 const pluginsJson = require("./plugins/json-plugins.json")
-console.log({ pluginsJson })
 
-const initSyncternet = () => {
+// Inject syncternet base structure into the page
+const injectSyncternet = () => {
   // Append style and plugin templates
   if (!$("style.crowwwd").length) $("body").append(`<style class="crowwwd">${style}</style>`) // Append crowwwd style
   if (!$("div#crowwwd").length) {
@@ -33,8 +32,8 @@ const initSyncternet = () => {
       </div>`)
   }
 }
+injectSyncternet()
 
-initSyncternet()
 console.info("Syncternet Plugins Loaded:", Object.keys(pluginsJson))
 
 // Initialize crowwwd engine
@@ -153,7 +152,7 @@ new Vue({
     },
     send(plugin, data) {
       if (!this.auth.UUID) return
-      this.crowwwd.socket.send(this.auth.UUID + "|" + plugin + "|" + JSON.stringify(data))
+      this.raw(this.auth.UUID, plugin, JSON.stringify(data))
     },
     raw(a, b, c) {
       this.crowwwd.socket.send(a + "|" + b + "|" + c)
