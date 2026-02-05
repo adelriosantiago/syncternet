@@ -89,18 +89,22 @@ new Vue({
   },
   methods: {
     startWSClient() {
-      // Check for previous auth data
-      const UUID = window.localStorage.getItem("crowwwd:UUID") || ""
-      const username = window.localStorage.getItem("crowwwd:username") || ""
+      try {
+        // Check for previous auth data
+        const UUID = window.localStorage.getItem("crowwwd:UUID") || ""
+        const username = window.localStorage.getItem("crowwwd:username") || ""
 
-      // Init socket connection
-      const protocol = location.protocol === "https:" ? "wss:" : "ws:"
-      this.crowwwd.socket = new ReconnectingWebSocket(
-        `${protocol}//${window.location.host}/?UUID=${UUID}&username=${username}`
-      )
-      this.crowwwd.socket.onopen = () => this.onWSOpen
-      this.crowwwd.socket.onerror = (err) => this.onWSError(err)
-      this.crowwwd.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+        // Init socket connection
+        const protocol = location.protocol === "https:" ? "wss:" : "ws:"
+        this.crowwwd.socket = new ReconnectingWebSocket(
+          `${protocol}//${window.location.host}/?UUID=${UUID}&username=${username}`
+        )
+        this.crowwwd.socket.onopen = () => this.onWSOpen()
+        this.crowwwd.socket.onerror = (err) => this.onWSError(err)
+        this.crowwwd.socket.onmessage = (msg) => this.onWSMessage(msg.data)
+      } catch (err) {
+        console.error("Syncternet - Failed to start WS client:", err)
+      }
     },
     onWSOpen() {
       console.info("Syncternet - WS Open")
@@ -116,8 +120,14 @@ new Vue({
         data = JSON.parse(data)
 
         // For plugin data
-        data = this.middleware[plugin](data, username, this.auth.username) // Plugin middleware
-        for (rootMiddleware of this.middleware["$"]) data = rootMiddleware(data, username, this.auth.username) // Root $ middleware
+        if (this.middleware[plugin]) {
+          data = this.middleware[plugin](data, username, this.auth.username) // Plugin middleware
+        }
+        if (this.middleware["$"]) {
+          for (const rootMiddleware of this.middleware["$"]) {
+            data = rootMiddleware(data, username, this.auth.username) // Root $ middleware
+          }
+        }
 
         if (this.public[username] === undefined) return this.$set(this.public, username, { [plugin]: data }) // When a new user connects and it still doesn't exist in our public
 
@@ -127,7 +137,7 @@ new Vue({
       }
     },
     onUUIDReceived() {
-      for (p of Object.entries(pluginsJson)) {
+      for (const p of Object.entries(pluginsJson)) {
         const obj = eval(p[1].script)
 
         // Create plugin data placeholder
