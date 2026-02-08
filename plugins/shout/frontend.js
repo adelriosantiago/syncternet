@@ -1,5 +1,5 @@
 new Object({
-  init: () => {
+  mounted() {
     this.self.shout.messages = {}
     let currentElement = null
 

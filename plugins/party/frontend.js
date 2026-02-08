@@ -1,6 +1,6 @@
 new Object({
   private: {},
-  init: () => {
+  mounted() {
     // TODO: Relocate
     const mobileCheck = () => {
       let check = false

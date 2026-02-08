@@ -149,8 +149,8 @@ new Vue({
         delete obj.middleware["$"]
         Object.assign(this.middleware, obj.middleware)
 
-        // Init plugin
-        obj.init()
+        // Call mounted if exists
+        if (obj.mounted) obj.mounted.call(this)
       }
     },
     sync(plugin, replace) {

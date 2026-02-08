@@ -1,0 +1,14 @@
+new Object({
+  mounted() {
+    console.log("name mounted", this)
+  },
+  methods: {},
+  middleware: {
+    $: (data, username, isSelf) => {
+      return data
+    },
+    name: (data, username, isSelf) => {
+      return data
+    },
+  },
+})

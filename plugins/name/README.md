@@ -1,0 +1,1 @@
+Name plugin allows people change their name in the syncternet network. It is a simple plugin that listens for name change requests and updates the user's name accordingly.
