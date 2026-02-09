@@ -4,20 +4,31 @@
 
 import fs from "fs"
 import path from "path"
+import * as cheerio from "cheerio"
 
-import { dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { dirname } from "node:path"
+import { fileURLToPath } from "node:url"
 const __dirname = dirname(fileURLToPath(import.meta.url))
 
 const pluginsFolder = path.join(__dirname, "..", "plugins")
+
+const readFrontend = (pluginPath) => {
+  const frontendPath = path.join(pluginPath, "frontend.html")
+  const content = fs.readFileSync(frontendPath, "utf8")
+  const $ = cheerio.load(content, { xmlMode: false, decodeEntities: false })
+
+  return {
+    html: $("template").first().html()?.trim() ?? "",
+    script: $("script").first().html()?.trim() ?? "",
+  }
+}
+
 const plugins = fs
   .readdirSync(pluginsFolder)
   .filter((f) => fs.lstatSync(path.join(pluginsFolder, f)).isDirectory())
   .map((p) => ({
     [p]: {
-      // TODO: Standarize names, template -> html, frontend -> script, etc
-      html: fs.readFileSync(path.join(pluginsFolder, p, "template.html"), "utf8"),
-      script: fs.readFileSync(path.join(pluginsFolder, p, "frontend.js"), "utf8"),
+      ...readFrontend(path.join(pluginsFolder, p)),
       back: fs.readFileSync(path.join(pluginsFolder, p, "backend.js"), "utf8"),
     },
   }))
