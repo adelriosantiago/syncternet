@@ -40,9 +40,13 @@ let _private = {}
 
 const execSpecialAction = {
   "@changeUsername": (socket, data) => {
-    data = JSON.parse(data)
-    _users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
-    send(socket, "@uuid", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
+    try {
+      data = JSON.parse(data)
+      _users[data.UUID] = data.newUsername // TODO: Check that it doesn't exists
+      send(socket, "@uuid", "", JSON.stringify({ UUID: data.UUID, username: data.newUsername }))
+    } catch (e) {
+      console.error("Error processing @changeUsername:", e)
+    }
   },
 }
 const specialActions = Object.keys(execSpecialAction)
@@ -88,7 +92,9 @@ const init = (server, app) => {
   // Start websocket server
   wsServer = new WebSocketServer({ server })
   wsServer.on(WS_CONNECTION, async (socket, req) => {
-    let [, UUID, username] = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
+    const match = req.url.match(/^\/\?UUID=(.*)&username=(.*)$/) // Spec: https://regex101.com/r/yZO0av/1
+    if (!match) return socket.close()
+    let [, UUID, username] = match
 
     // Create new session or continue an old one
 
@@ -103,22 +109,40 @@ const init = (server, app) => {
     sendAllToClient(socket) // Send all existing public data at the beginning
 
     socket.on(WS_MESSAGE, (msg, isBinary) => {
-      if (isBinary) return // Ignore binary messages
-      const msgStr = msg.toString("utf8")
-      let [, UUID, plugin, data] = msgStr.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
-      if (!UUID) return
-      if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, data) // Special functions
-      data = JSON.parse(data)
+      try {
+        if (isBinary) return // Ignore binary messages
+        const msgStr = msg.toString("utf8")
+        const match = msgStr.match(/^([@\w-]+)\|(\w+|)\|(.*)$/) // Spec: https://regex101.com/r/QMH6lD/1
+        if (!match) return
+        let [, UUID, plugin, data] = match
 
-      // For plugin data
-      if (_public[UUID] === undefined) _public[UUID] = {}
-      if (_private[UUID] === undefined) _private[UUID] = {}
+        if (!UUID) return
+        if (specialActions.includes(UUID)) return execSpecialAction[UUID](socket, data) // Special functions
+        
+        try {
+          data = JSON.parse(data)
+        } catch (e) {
+          console.error("Error parsing JSON data:", e)
+          return
+        }
 
-      // Process plugin backend middleware
-      data = pluginBackends[plugin]["$"](data, buildSync(_users[UUID], plugin), UUID, _private[UUID], _public[UUID])
-      Object.assign(_public[UUID], { [plugin]: data })
+        // For plugin data
+        if (_public[UUID] === undefined) _public[UUID] = {}
+        if (_private[UUID] === undefined) _private[UUID] = {}
 
-      broadcastData(_users[UUID], plugin, JSON.stringify(data))
+        // Process plugin backend middleware
+        try {
+          data = pluginBackends[plugin]["$"](data, buildSync(_users[UUID], plugin), UUID, _private[UUID], _public[UUID])
+        } catch (e) {
+          console.error(`Error in plugin middleware for ${plugin}:`, e)
+          return
+        }
+        Object.assign(_public[UUID], { [plugin]: data })
+
+        broadcastData(_users[UUID], plugin, JSON.stringify(data))
+      } catch (e) {
+        console.error("Critical error in message handler:", e)
+      }
     })
   })
 }
