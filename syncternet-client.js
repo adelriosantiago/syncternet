@@ -13,7 +13,7 @@ const xpath = require("./utils/xpath-micro.js")
 //const _set = require("lodash.set")
 const $ = require("./utils/cash.min.js")
 const pluginsJson = require("./plugins/json-plugins.json")
-const usernameMenuTemplate = require("./templates/username-menu.js")
+const templatesJson = require("./templates/json-templates.json")
 
 // Inject syncternet base structure into the page
 const injectSyncternet = () => {
@@ -23,7 +23,7 @@ const injectSyncternet = () => {
     $("body").append("<div id='crowwwd'></div>")
 
     // Append name change menu // TODO: IMPORTANT, THIS SHOULD BE A TEMPLATE (or a plugin) AND SHOULD NOT BE INTO MULTIPLE LINES
-    $("div#crowwwd").append(usernameMenuTemplate)
+    $("div#crowwwd").append(templatesJson["username-menu"])
 
     $("div#crowwwd").append(`<div v-for="(P, username) in public">${Object.values(pluginsJson)
       .map((p) => p.html)

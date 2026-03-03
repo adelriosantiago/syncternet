@@ -12,7 +12,7 @@
     "plugins/json-plugins.json"
   ],
   "scripts": {
-    "build:client": "node ./plugins/generate-json.js && browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
+    "build:client": "node ./plugins/generate-json.js && node ./templates/generate-json.js && browserify ./syncternet-client.js -o ./exports/syncternet-client.js",
     "build:style": "postcss ./style/tailwind.source.css -o ./style/style.min.css && node ./style/generate-json.js"
   },
   "dependencies": {
